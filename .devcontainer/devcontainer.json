@@ -1,9 +1,0 @@
-{
-  "name": "keycel-devcontainer",
-  "dockerComposeFile": [
-    "docker-compose.yml"
-  ],
-  "service": "app",
-  "workspaceFolder": "/workspace",
-  "shutdownAction": "stopCompose"
-}
