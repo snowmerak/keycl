@@ -1,4 +1,4 @@
-package cache
+package client
 
 import (
 	"errors"
@@ -8,12 +8,12 @@ import (
 	"github.com/valkey-io/valkey-go"
 )
 
-type Cache struct {
+type Client struct {
 	client valkey.Client
 }
 
-func NewCache(client valkey.Client) *Cache {
-	return &Cache{client: client}
+func New(client valkey.Client) *Client {
+	return &Client{client: client}
 }
 
 func ClientOptionFromEnv() valkey.ClientOption {
@@ -34,10 +34,10 @@ func ClientOptionFromEnv() valkey.ClientOption {
 	}
 }
 
-func NewCacheWithConfig(config valkey.ClientOption) (*Cache, error) {
+func NewClientWithConfig(config valkey.ClientOption) (*Client, error) {
 	client, err := valkey.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
-	return NewCache(client), nil
+	return New(client), nil
 }
