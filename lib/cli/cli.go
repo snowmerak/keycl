@@ -146,6 +146,7 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 			case 5:
 				if line[i] == ' ' || len(line)-1 == i {
 					node.LinkState = line[prevIdx:i]
+					prevIdx = i + 1
 					state = 6
 				}
 			case 6:
@@ -155,7 +156,7 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 					}
 					slots := strings.Split(line[prevIdx:i], "-")
 					if len(slots) == 1 {
-						slot, _ := strconv.Atoi(slots[0])
+						slot, _ := strconv.Atoi(strings.TrimSpace(slots[0]))
 						node.Slots = append(node.Slots, slot)
 					} else {
 						start, _ := strconv.Atoi(slots[0])
@@ -356,6 +357,21 @@ func (cli *CLI) ForgetNode(ctx context.Context, host string, port int, nodeID st
 	}
 
 	log.Info().Msg("finish forget node")
+
+	return nil
+}
+
+func (cli *CLI) DeleteNode(ctx context.Context, host string, port int, nodeID string) error {
+	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "--cluster", "del-node", host + ":" + strconv.FormatInt(int64(port), 10), nodeID}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("delete node")
+
+	cmd := exec.CommandContext(ctx, string(cli.name), args...)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
+	}
+
+	log.Info().Msg("finish delete node")
 
 	return nil
 }
