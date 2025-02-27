@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	c := cli.New(cli.Valkey)
+	c := cli.New(cli.Valkey, "")
 
 	if err := c.CreateCluster(ctx, 0, "127.0.0.1:7001", "127.0.0.1:7002", "127.0.0.1:7003"); err != nil {
 		panic(err)

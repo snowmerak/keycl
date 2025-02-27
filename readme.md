@@ -30,8 +30,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	c := cli.New(cli.Valkey)
-	// c := cli.New(cli.Redis)
+	c := cli.New(cli.Valkey, "")
+	// c := cli.New(cli.Redis, "")
 }
 ```
 
