@@ -4,17 +4,22 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
-	"os"
+	"io"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/rs/zerolog/log"
+)
+
+const (
+	MaxSlotCount = 16384
 )
 
 func RunCommand(ctx context.Context, command string, args []string) ([]byte, error) {
 	cmd := exec.CommandContext(ctx, command, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("failed to run command %s %v: %w", command, args, err)
 	}
@@ -36,18 +41,20 @@ func New(name CliName) *CLI {
 	return &CLI{name: name}
 }
 
-func (cli *CLI) CreateCluster(ctx context.Context, addresses []string, replicas int) error {
+func (cli *CLI) CreateCluster(ctx context.Context, replicas int, address ...string) error {
 	args := []string{"--cluster", "create"}
-	args = append(args, addresses...)
+	args = append(args, address...)
 	args = append(args, "--cluster-replicas", strconv.FormatInt(int64(replicas), 10))
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("create cluster")
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	cmd.Stdin = bytes.NewReader([]byte("yes\n"))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
 	}
+
+	log.Info().Msg("finish create cluster")
 
 	return nil
 }
@@ -62,7 +69,11 @@ type ClusterNode struct {
 }
 
 func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*ClusterNode, error) {
-	cmd := exec.CommandContext(ctx, string(cli.name), "-h", host, "-p", strconv.Itoa(port), "cluster", "nodes")
+	args := []string{string(cli.name), "-h", host, "-p", strconv.Itoa(port), "cluster", "nodes"}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("get cluster nodes")
+
+	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	resp, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command %s %v: %w", cli.name, []string{"-h", host, "-p", strconv.Itoa(port), "cluster", "nodes"}, err)
@@ -142,7 +153,25 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 		nodes = append(nodes, node)
 	}
 
+	log.Info().Interface("nodes", nodes).Msg("finish get cluster nodes")
+
 	return nodes, nil
+}
+
+func (cli *CLI) GetNoSlotNodes(ctx context.Context, host string, port int) ([]string, int, error) {
+	nodes, err := cli.GetClusterNodes(ctx, host, port)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to get cluster nodes: %w", err)
+	}
+
+	noSlotNodes := make([]string, 0)
+	for _, node := range nodes {
+		if len(node.Slots) == 0 {
+			noSlotNodes = append(noSlotNodes, node.ID)
+		}
+	}
+
+	return noSlotNodes, len(nodes), nil
 }
 
 type ClusterInfo struct {
@@ -157,7 +186,11 @@ type ClusterInfo struct {
 }
 
 func (cli *CLI) GetClusterInfo(ctx context.Context, host string, port int) (*ClusterInfo, error) {
-	cmd := exec.CommandContext(ctx, string(cli.name), "-h", host, "-p", strconv.Itoa(port), "cluster", "info")
+	args := []string{string(cli.name), "-h", host, "-p", strconv.Itoa(port), "cluster", "info"}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("get cluster info")
+
+	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	resp, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to run command %s %v: %w", cli.name, []string{"-h", host, "-p", strconv.Itoa(port), "cluster", "info"}, err)
@@ -200,32 +233,95 @@ func (cli *CLI) GetClusterInfo(ctx context.Context, host string, port int) (*Clu
 		}
 	}
 
+	log.Info().Interface("info", info).Msg("finish get cluster info")
+
 	return info, nil
 }
 
-func (cli *CLI) AddNode(ctx context.Context, newNode, existingNode string) error {
+func (cli *CLI) AddNode(ctx context.Context, newNodeHost string, newNodePort int, existingNodeHost string, existingNodePort int) error {
+	newNode := newNodeHost + ":" + strconv.FormatInt(int64(newNodePort), 10)
+	existingNode := existingNodeHost + ":" + strconv.FormatInt(int64(existingNodePort), 10)
 	args := []string{"--cluster", "add-node", newNode, existingNode}
 
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("add node")
+
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
 	}
+
+	log.Info().Msg("finish add node")
 
 	return nil
 }
 
-func (cli *CLI) Reshard(ctx context.Context, node string) error {
-	args := []string{"--cluster", "reshard", node, "--cluster-yes"}
+func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode string, slots int) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	args := []string{"--cluster", "reshard", host + ":" + strconv.FormatInt(int64(port), 10), "--cluster-yes"}
+
+	ipr, ipw := io.Pipe()
+	opr, opw := io.Pipe()
+
+	writeBuffer := opw
+	readBuffer := ipr
+	reactor := NewReactor(readBuffer, writeBuffer)
+	reactor.AddReaction("How many slots do you want to move", strconv.FormatInt(int64(slots), 10))
+	reactor.AddReaction("What is the receiving node ID", targetNode)
+	reactor.AddReaction("Please enter all the source node IDs", "all")
+	reactor.AddReaction("Do you want to proceed with the proposed reshard plan", "yes")
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
-	// cmd.Stdin = bytes.NewReader([]byte("all\nall\nyes\n"))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	cmd.Stdin = opr
+	cmd.Stdout = ipw
+	cmd.Stderr = ipw
+	go func() {
+		reactor.React(func() {
+			cancel()
+
+			if !cmd.ProcessState.Exited() {
+				if err := cmd.Process.Kill(); err != nil {
+					log.Error().Err(err).Msg("failed to kill process")
+				}
+			} else {
+				log.Info().Int("exitCode", cmd.ProcessState.ExitCode()).Msg("process exited")
+			}
+
+			if err := ipw.Close(); err != nil {
+				log.Error().Err(err).Msg("failed to close pipe")
+			}
+
+			if err := opr.Close(); err != nil {
+				log.Error().Err(err).Msg("failed to close pipe")
+			}
+		})
+	}()
+	if err := cmd.Run(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, io.ErrClosedPipe) {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
 	}
+
+	log.Info().Msg("finish reshard")
+
+	return nil
+}
+
+func (cli *CLI) ReshardAll(ctx context.Context, host string, port int) error {
+	noSlotNodes, allNodeCount, err := cli.GetNoSlotNodes(ctx, host, port)
+	if err != nil {
+		return fmt.Errorf("failed to get nodes without slots: %w", err)
+	}
+
+	log.Info().Strs("noSlotNodes", noSlotNodes).Int("allNodeCount", allNodeCount).Msg("all node information")
+
+	slotCount := MaxSlotCount / allNodeCount
+	for _, node := range noSlotNodes {
+		if err := cli.Reshard(ctx, host, port, node, slotCount); err != nil {
+			return fmt.Errorf("failed to reshard: %w", err)
+		}
+	}
+
+	log.Info().Msg("finish reshard all")
 
 	return nil
 }
