@@ -275,7 +275,7 @@ func (cli *CLI) AddNode(ctx context.Context, newNodeHost string, newNodePort int
 	return nil
 }
 
-func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode string, slots int) error {
+func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode string, slots int, sourceNode string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -289,7 +289,7 @@ func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode s
 	reactor := NewReactor(readBuffer, writeBuffer)
 	reactor.AddReaction("How many slots do you want to move", strconv.FormatInt(int64(slots), 10))
 	reactor.AddReaction("What is the receiving node ID", targetNode)
-	reactor.AddReaction("Please enter all the source node IDs", "all")
+	reactor.AddReaction("Please enter all the source node IDs", sourceNode)
 	reactor.AddReaction("Do you want to proceed with the proposed reshard plan", "yes")
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
@@ -336,7 +336,7 @@ func (cli *CLI) ReshardAll(ctx context.Context, host string, port int) error {
 
 	slotCount := MaxSlotCount / allNodeCount
 	for _, node := range noSlotNodes {
-		if err := cli.Reshard(ctx, host, port, node, slotCount); err != nil {
+		if err := cli.Reshard(ctx, host, port, node, slotCount, "all"); err != nil {
 			return fmt.Errorf("failed to reshard: %w", err)
 		}
 	}
@@ -387,6 +387,29 @@ func (cli *CLI) ReplicateNode(ctx context.Context, host string, port int, master
 	}
 
 	log.Info().Msg("finish replicate node")
+
+	return nil
+}
+
+func (cli *CLI) Rebalance(ctx context.Context, host string, port int) error {
+	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "--cluster", "rebalance", host + ":" + strconv.FormatInt(int64(port), 10)}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("rebalance")
+
+	cmd := exec.CommandContext(ctx, string(cli.name), args...)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
+	}
+
+	log.Info().Msg("finish rebalance")
+
+	return nil
+}
+
+func (cli *CLI) ExceptNode(ctx context.Context, host string, port int, exceptionNode string, slotCount int, borderNode string) error {
+	if err := cli.Reshard(ctx, host, port, borderNode, slotCount, exceptionNode); err != nil {
+		return fmt.Errorf("failed to reshard: %w", err)
+	}
 
 	return nil
 }
