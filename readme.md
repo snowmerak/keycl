@@ -1,6 +1,6 @@
 # KeyCL
 
-KeyCL is a simple valkey/redis manager for operating.
+KeyCL is a simple valkey/redis cli executaor for golang.
 
 ## Pre-requirements
 
