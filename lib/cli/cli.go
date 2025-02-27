@@ -35,11 +35,12 @@ const (
 )
 
 type CLI struct {
-	name CliName
+	name     CliName
+	password string
 }
 
-func New(name CliName) *CLI {
-	return &CLI{name: name}
+func New(name CliName, password string) *CLI {
+	return &CLI{name: name, password: password}
 }
 
 func (cli *CLI) CreateCluster(ctx context.Context, replicas int, address ...string) error {
@@ -48,6 +49,10 @@ func (cli *CLI) CreateCluster(ctx context.Context, replicas int, address ...stri
 	args = append(args, "--cluster-replicas", strconv.FormatInt(int64(replicas), 10))
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("create cluster")
+
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	cmd.Stdin = bytes.NewReader([]byte("yes\n"))
@@ -74,6 +79,10 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 	args := []string{string(cli.name), "-h", host, "-p", strconv.Itoa(port), "cluster", "nodes"}
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("get cluster nodes")
+
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
 
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	resp, err := cmd.Output()
@@ -213,6 +222,10 @@ func (cli *CLI) GetClusterInfo(ctx context.Context, host string, port int) (*Clu
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("get cluster info")
 
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
+
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	resp, err := cmd.Output()
 	if err != nil {
@@ -268,6 +281,10 @@ func (cli *CLI) AddNode(ctx context.Context, newNodeHost string, newNodePort int
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("add node")
 
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
+
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
@@ -283,6 +300,12 @@ func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode s
 	defer cancel()
 
 	args := []string{"--cluster", "reshard", host + ":" + strconv.FormatInt(int64(port), 10), "--cluster-yes"}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("reshard")
+
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
 
 	ipr, ipw := io.Pipe()
 	opr, opw := io.Pipe()
@@ -357,6 +380,10 @@ func (cli *CLI) ForgetNode(ctx context.Context, host string, port int, nodeID st
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("forget node")
 
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
+
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
@@ -371,6 +398,10 @@ func (cli *CLI) DeleteNode(ctx context.Context, host string, port int, nodeID st
 	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "--cluster", "del-node", host + ":" + strconv.FormatInt(int64(port), 10), nodeID}
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("delete node")
+
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	if err := cmd.Run(); err != nil {
@@ -387,6 +418,10 @@ func (cli *CLI) ReplicateNode(ctx context.Context, host string, port int, master
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("replicate node")
 
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
+
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
@@ -401,6 +436,10 @@ func (cli *CLI) Rebalance(ctx context.Context, host string, port int) error {
 	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "--cluster", "rebalance", host + ":" + strconv.FormatInt(int64(port), 10)}
 
 	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("rebalance")
+
+	if cli.password != "" {
+		args = append(args, "-a", cli.password)
+	}
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
 	if err := cmd.Run(); err != nil {
