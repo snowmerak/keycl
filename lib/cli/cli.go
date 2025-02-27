@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -150,18 +151,20 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 					state = 6
 				}
 			case 6:
-				if line[i] == ' ' || len(line)-1 == i {
-					if len(line)-1 == i {
-						i++
-					}
-					slots := strings.Split(line[prevIdx:i], "-")
-					if len(slots) == 1 {
-						slot, _ := strconv.Atoi(strings.TrimSpace(slots[0]))
-						node.Slots = append(node.Slots, slot)
-					} else {
-						start, _ := strconv.Atoi(slots[0])
-						end, _ := strconv.Atoi(slots[1])
-						node.Slots = append(node.Slots, start, end)
+				if len(line)-1 == i {
+					i++
+					slotSet := strings.Split(line[prevIdx:i], " ")
+					fmt.Printf("slotSet: %v\n", slotSet)
+					for _, slotPair := range slotSet {
+						slots := strings.Split(slotPair, "-")
+						if len(slots) == 1 {
+							slot, _ := strconv.Atoi(strings.TrimSpace(slots[0]))
+							node.Slots = append(node.Slots, slot)
+						} else {
+							start, _ := strconv.Atoi(slots[0])
+							end, _ := strconv.Atoi(slots[1])
+							node.Slots = append(node.Slots, start, end)
+						}
 					}
 					state = 7
 				}
@@ -290,6 +293,9 @@ func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode s
 	reactor.AddReaction("How many slots do you want to move", strconv.FormatInt(int64(slots), 10))
 	reactor.AddReaction("What is the receiving node ID", targetNode)
 	reactor.AddReaction("Please enter all the source node IDs", sourceNode)
+	if sourceNode != "all" {
+		reactor.AddReaction("Source node #2", "done")
+	}
 	reactor.AddReaction("Do you want to proceed with the proposed reshard plan", "yes")
 
 	cmd := exec.CommandContext(ctx, string(cli.name), args...)
@@ -300,7 +306,7 @@ func (cli *CLI) Reshard(ctx context.Context, host string, port int, targetNode s
 		reactor.React(func() {
 			cancel()
 
-			if !cmd.ProcessState.Exited() {
+			if cmd.ProcessState != nil && !cmd.ProcessState.Exited() {
 				if err := cmd.Process.Kill(); err != nil {
 					log.Error().Err(err).Msg("failed to kill process")
 				}
@@ -406,8 +412,109 @@ func (cli *CLI) Rebalance(ctx context.Context, host string, port int) error {
 	return nil
 }
 
-func (cli *CLI) ExceptNode(ctx context.Context, host string, port int, exceptionNode string, slotCount int, borderNode string) error {
-	if err := cli.Reshard(ctx, host, port, borderNode, slotCount, exceptionNode); err != nil {
+func (cli *CLI) ExceptNode(ctx context.Context, host string, port int, exceptionNode string) error {
+	nodes, err := cli.GetClusterNodes(ctx, host, port)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster nodes: %w", err)
+	}
+
+	var underBorderSlot, overBorderSlot int
+	var slotCount int
+firstLoop:
+	for _, node := range nodes {
+		if len(node.Slots) == 0 {
+			continue firstLoop
+		}
+
+		for _, flag := range node.Flags {
+			if flag == "slave" {
+				continue firstLoop
+			}
+		}
+
+		if node.ID == exceptionNode {
+			underBorderSlot = node.Slots[0]
+			overBorderSlot = node.Slots[len(node.Slots)-1]
+			slotCount = node.Slots[len(node.Slots)-1] - node.Slots[0] + 1
+		}
+	}
+
+	var underBorderID, overBorderID string
+secondLoop:
+	for _, node := range nodes {
+		if len(node.Slots) == 0 {
+			continue secondLoop
+		}
+
+		for _, flag := range node.Flags {
+			if flag == "slave" {
+				continue secondLoop
+			}
+		}
+
+		if node.Slots[0] == overBorderSlot+1 {
+			overBorderID = node.ID
+		}
+
+		if node.Slots[len(node.Slots)-1] == underBorderSlot-1 {
+			underBorderID = node.ID
+		}
+	}
+
+	if underBorderID == "" || overBorderID == "" {
+		return fmt.Errorf("failed to find underBorderID or overBorderID")
+	}
+
+	selectedBorderNode := ""
+	if underBorderID == "" {
+		selectedBorderNode = overBorderID
+	}
+	if overBorderID == "" {
+		selectedBorderNode = underBorderID
+	}
+	if underBorderID != "" && overBorderID != "" {
+		selectedBorderNode = [2]string{underBorderID, overBorderID}[rand.Intn(2)]
+	}
+
+	log.Info().Str("selectedBorderNode", selectedBorderNode).Int("slotCount", slotCount).Msg("except node")
+
+	if err := cli.Reshard(ctx, host, port, selectedBorderNode, slotCount, exceptionNode); err != nil {
+		return fmt.Errorf("failed to reshard: %w", err)
+	}
+
+	return nil
+}
+
+func (cli *CLI) MergeNode(ctx context.Context, host string, port int, targetNodeID string, sourceNodeID string) error {
+	nodes, err := cli.GetClusterNodes(ctx, host, port)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster nodes: %w", err)
+	}
+
+	var targetNode, sourceNode *ClusterNode
+	for _, node := range nodes {
+		if node.ID == targetNodeID {
+			targetNode = node
+		}
+		if node.ID == sourceNodeID {
+			sourceNode = node
+		}
+	}
+
+	if targetNode == nil || sourceNode == nil {
+		return fmt.Errorf("failed to find targetNode or sourceNode")
+	}
+
+	log.Info().Str("targetNode", targetNode.ID).Str("sourceNode", sourceNode.ID).Msg("merge node")
+
+	slotCount := 0
+	for i := 0; i < len(sourceNode.Slots); i += 2 {
+		start := sourceNode.Slots[i]
+		end := sourceNode.Slots[i+1]
+		slotCount += end - start + 1
+	}
+
+	if err := cli.Reshard(ctx, host, port, targetNode.ID, slotCount, sourceNode.ID); err != nil {
 		return fmt.Errorf("failed to reshard: %w", err)
 	}
 
