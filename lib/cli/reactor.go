@@ -38,7 +38,7 @@ func SplitRedisCommand(data []byte, atEOF bool) (advance int, token []byte, err 
 loop:
 	for i, b := range data {
 		switch b {
-		case '\n', '?', ')':
+		case '\n', '?', ':':
 			idx = i
 			break loop
 		}
