@@ -64,6 +64,7 @@ type ClusterNode struct {
 	Host        string
 	ClusterPort int
 	Flags       []string
+	MasterID    string
 	LinkState   string
 	Slots       []int
 }
@@ -81,6 +82,8 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 
 	nodes := make([]*ClusterNode, 0)
 
+	isSlave := false
+	checkMasterID := false
 	sc := bufio.NewScanner(bytes.NewReader(resp))
 	for sc.Scan() {
 		line := strings.TrimPrefix(sc.Text(), "txt:")
@@ -116,16 +119,32 @@ func (cli *CLI) GetClusterNodes(ctx context.Context, host string, port int) ([]*
 			case 3:
 				if line[i] == ' ' {
 					node.Flags = append(node.Flags, strings.Split(line[prevIdx:i], ",")...)
+				inner:
+					for _, flag := range node.Flags {
+						if flag == "slave" {
+							isSlave = true
+							break inner
+						}
+					}
 					state = 4
 					prevIdx = i + 1
 				}
 			case 4:
+				if isSlave && !checkMasterID {
+					if line[i] == ' ' {
+						checkMasterID = true
+						node.MasterID = line[prevIdx:i]
+						prevIdx = i + 1
+						continue loop
+					}
+					continue loop
+				}
 				if 'a' <= line[i] && line[i] <= 'z' || 'A' <= line[i] && line[i] <= 'Z' {
 					prevIdx = i
 					state = 5
 				}
 			case 5:
-				if line[i] == ' ' {
+				if line[i] == ' ' || len(line)-1 == i {
 					node.LinkState = line[prevIdx:i]
 					state = 6
 				}
@@ -322,6 +341,36 @@ func (cli *CLI) ReshardAll(ctx context.Context, host string, port int) error {
 	}
 
 	log.Info().Msg("finish reshard all")
+
+	return nil
+}
+
+func (cli *CLI) ForgetNode(ctx context.Context, host string, port int, nodeID string) error {
+	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "-c", "cluster", "forget", nodeID}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("forget node")
+
+	cmd := exec.CommandContext(ctx, string(cli.name), args...)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
+	}
+
+	log.Info().Msg("finish forget node")
+
+	return nil
+}
+
+func (cli *CLI) ReplicateNode(ctx context.Context, host string, port int, masterNodeID string) error {
+	args := []string{"-h", host, "-p", strconv.FormatInt(int64(port), 10), "-c", "cluster", "replicate", masterNodeID}
+
+	log.Info().Str("command", string(cli.name)).Strs("args", args).Msg("replicate node")
+
+	cmd := exec.CommandContext(ctx, string(cli.name), args...)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run command %s %v: %w", cli.name, args, err)
+	}
+
+	log.Info().Msg("finish replicate node")
 
 	return nil
 }
