@@ -1,0 +1,23 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      # <module_name>   : name in go.mod
+      # <relative_path> : where generated code should be output
+      value: "github.com/snowmerak/keycl/model/gen"
+  # Remove `disable` field if googleapis is not used
+  disable:
+    - module: buf.build/googleapis/googleapis
+      file_option: go_package_prefix
+plugins:
+  - remote: buf.build/grpc/go:v1.4.0
+    out: gen
+    opt:
+      - paths=source_relative
+  - remote: buf.build/protocolbuffers/go
+    out: gen
+    opt:
+      - paths=source_relative
+inputs:
+  - directory: proto
