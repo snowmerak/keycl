@@ -1,3 +1,91 @@
 syntax = "proto3";
 
 option go_package = "./proto/rails";
+
+message Message {
+  oneof Request {
+    EmptyRequest empty_request = 1;
+    UpdateStatus update_status = 2;
+    LoginRequest login_request = 3;
+    RegisterCandidateRequest register_candidate_request = 4;
+    ConfirmRegistryRequest confirm_registry_request = 5;
+    ResetPasswordRequest reset_password_request = 6;
+    AddNewCluster add_new_cluster = 7;
+    RemoveCluster remove_cluster = 8;
+    AddNewNode add_new_node = 9;
+    RemoveNode remove_node = 10;
+    ExcludeNode exclude_node = 11;
+  }
+  oneof Response {
+    EmptyResponse empty_response = 101;
+    CommonResponse common_response = 102;
+    ValueResponse value_response = 103;
+  }
+}
+
+
+message EmptyRequest {}
+
+message EmptyResponse {}
+
+message CommonResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ValueResponse {
+  bool success = 1;
+  string message = 2;
+  bytes value = 3;
+}
+
+message UpdateStatus {
+  string scope = 1;
+  string key = 2;
+  string value = 3;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message RegisterCandidateRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message ConfirmRegistryRequest {
+  string email = 1;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+}
+
+message AddNewCluster {
+  string name = 1;
+  string password = 2;
+}
+
+message RemoveCluster {
+  string name = 1;
+}
+
+message AddNewNode {
+  string cluster = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+message RemoveNode {
+  string cluster = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+message ExcludeNode {
+  string cluster = 1;
+  string host = 2;
+  int32 port = 3;
+}

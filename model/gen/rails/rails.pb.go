@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -20,24 +21,1176 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Message struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Request:
+	//
+	//	*Message_EmptyRequest
+	//	*Message_UpdateStatus
+	//	*Message_LoginRequest
+	//	*Message_RegisterCandidateRequest
+	//	*Message_ConfirmRegistryRequest
+	//	*Message_ResetPasswordRequest
+	//	*Message_AddNewCluster
+	//	*Message_RemoveCluster
+	//	*Message_AddNewNode
+	//	*Message_RemoveNode
+	//	*Message_ExcludeNode
+	Request isMessage_Request `protobuf_oneof:"Request"`
+	// Types that are valid to be assigned to Response:
+	//
+	//	*Message_EmptyResponse
+	//	*Message_CommonResponse
+	//	*Message_ValueResponse
+	Response      isMessage_Response `protobuf_oneof:"Response"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Message) Reset() {
+	*x = Message{}
+	mi := &file_rails_rails_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Message) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Message) ProtoMessage() {}
+
+func (x *Message) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Message.ProtoReflect.Descriptor instead.
+func (*Message) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Message) GetRequest() isMessage_Request {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *Message) GetEmptyRequest() *EmptyRequest {
+	if x != nil {
+		if x, ok := x.Request.(*Message_EmptyRequest); ok {
+			return x.EmptyRequest
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetUpdateStatus() *UpdateStatus {
+	if x != nil {
+		if x, ok := x.Request.(*Message_UpdateStatus); ok {
+			return x.UpdateStatus
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetLoginRequest() *LoginRequest {
+	if x != nil {
+		if x, ok := x.Request.(*Message_LoginRequest); ok {
+			return x.LoginRequest
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetRegisterCandidateRequest() *RegisterCandidateRequest {
+	if x != nil {
+		if x, ok := x.Request.(*Message_RegisterCandidateRequest); ok {
+			return x.RegisterCandidateRequest
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetConfirmRegistryRequest() *ConfirmRegistryRequest {
+	if x != nil {
+		if x, ok := x.Request.(*Message_ConfirmRegistryRequest); ok {
+			return x.ConfirmRegistryRequest
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetResetPasswordRequest() *ResetPasswordRequest {
+	if x != nil {
+		if x, ok := x.Request.(*Message_ResetPasswordRequest); ok {
+			return x.ResetPasswordRequest
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetAddNewCluster() *AddNewCluster {
+	if x != nil {
+		if x, ok := x.Request.(*Message_AddNewCluster); ok {
+			return x.AddNewCluster
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetRemoveCluster() *RemoveCluster {
+	if x != nil {
+		if x, ok := x.Request.(*Message_RemoveCluster); ok {
+			return x.RemoveCluster
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetAddNewNode() *AddNewNode {
+	if x != nil {
+		if x, ok := x.Request.(*Message_AddNewNode); ok {
+			return x.AddNewNode
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetRemoveNode() *RemoveNode {
+	if x != nil {
+		if x, ok := x.Request.(*Message_RemoveNode); ok {
+			return x.RemoveNode
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetExcludeNode() *ExcludeNode {
+	if x != nil {
+		if x, ok := x.Request.(*Message_ExcludeNode); ok {
+			return x.ExcludeNode
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetResponse() isMessage_Response {
+	if x != nil {
+		return x.Response
+	}
+	return nil
+}
+
+func (x *Message) GetEmptyResponse() *EmptyResponse {
+	if x != nil {
+		if x, ok := x.Response.(*Message_EmptyResponse); ok {
+			return x.EmptyResponse
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetCommonResponse() *CommonResponse {
+	if x != nil {
+		if x, ok := x.Response.(*Message_CommonResponse); ok {
+			return x.CommonResponse
+		}
+	}
+	return nil
+}
+
+func (x *Message) GetValueResponse() *ValueResponse {
+	if x != nil {
+		if x, ok := x.Response.(*Message_ValueResponse); ok {
+			return x.ValueResponse
+		}
+	}
+	return nil
+}
+
+type isMessage_Request interface {
+	isMessage_Request()
+}
+
+type Message_EmptyRequest struct {
+	EmptyRequest *EmptyRequest `protobuf:"bytes,1,opt,name=empty_request,json=emptyRequest,proto3,oneof"`
+}
+
+type Message_UpdateStatus struct {
+	UpdateStatus *UpdateStatus `protobuf:"bytes,2,opt,name=update_status,json=updateStatus,proto3,oneof"`
+}
+
+type Message_LoginRequest struct {
+	LoginRequest *LoginRequest `protobuf:"bytes,3,opt,name=login_request,json=loginRequest,proto3,oneof"`
+}
+
+type Message_RegisterCandidateRequest struct {
+	RegisterCandidateRequest *RegisterCandidateRequest `protobuf:"bytes,4,opt,name=register_candidate_request,json=registerCandidateRequest,proto3,oneof"`
+}
+
+type Message_ConfirmRegistryRequest struct {
+	ConfirmRegistryRequest *ConfirmRegistryRequest `protobuf:"bytes,5,opt,name=confirm_registry_request,json=confirmRegistryRequest,proto3,oneof"`
+}
+
+type Message_ResetPasswordRequest struct {
+	ResetPasswordRequest *ResetPasswordRequest `protobuf:"bytes,6,opt,name=reset_password_request,json=resetPasswordRequest,proto3,oneof"`
+}
+
+type Message_AddNewCluster struct {
+	AddNewCluster *AddNewCluster `protobuf:"bytes,7,opt,name=add_new_cluster,json=addNewCluster,proto3,oneof"`
+}
+
+type Message_RemoveCluster struct {
+	RemoveCluster *RemoveCluster `protobuf:"bytes,8,opt,name=remove_cluster,json=removeCluster,proto3,oneof"`
+}
+
+type Message_AddNewNode struct {
+	AddNewNode *AddNewNode `protobuf:"bytes,9,opt,name=add_new_node,json=addNewNode,proto3,oneof"`
+}
+
+type Message_RemoveNode struct {
+	RemoveNode *RemoveNode `protobuf:"bytes,10,opt,name=remove_node,json=removeNode,proto3,oneof"`
+}
+
+type Message_ExcludeNode struct {
+	ExcludeNode *ExcludeNode `protobuf:"bytes,11,opt,name=exclude_node,json=excludeNode,proto3,oneof"`
+}
+
+func (*Message_EmptyRequest) isMessage_Request() {}
+
+func (*Message_UpdateStatus) isMessage_Request() {}
+
+func (*Message_LoginRequest) isMessage_Request() {}
+
+func (*Message_RegisterCandidateRequest) isMessage_Request() {}
+
+func (*Message_ConfirmRegistryRequest) isMessage_Request() {}
+
+func (*Message_ResetPasswordRequest) isMessage_Request() {}
+
+func (*Message_AddNewCluster) isMessage_Request() {}
+
+func (*Message_RemoveCluster) isMessage_Request() {}
+
+func (*Message_AddNewNode) isMessage_Request() {}
+
+func (*Message_RemoveNode) isMessage_Request() {}
+
+func (*Message_ExcludeNode) isMessage_Request() {}
+
+type isMessage_Response interface {
+	isMessage_Response()
+}
+
+type Message_EmptyResponse struct {
+	EmptyResponse *EmptyResponse `protobuf:"bytes,101,opt,name=empty_response,json=emptyResponse,proto3,oneof"`
+}
+
+type Message_CommonResponse struct {
+	CommonResponse *CommonResponse `protobuf:"bytes,102,opt,name=common_response,json=commonResponse,proto3,oneof"`
+}
+
+type Message_ValueResponse struct {
+	ValueResponse *ValueResponse `protobuf:"bytes,103,opt,name=value_response,json=valueResponse,proto3,oneof"`
+}
+
+func (*Message_EmptyResponse) isMessage_Response() {}
+
+func (*Message_CommonResponse) isMessage_Response() {}
+
+func (*Message_ValueResponse) isMessage_Response() {}
+
+type EmptyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmptyRequest) Reset() {
+	*x = EmptyRequest{}
+	mi := &file_rails_rails_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmptyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmptyRequest) ProtoMessage() {}
+
+func (x *EmptyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmptyRequest.ProtoReflect.Descriptor instead.
+func (*EmptyRequest) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{1}
+}
+
+type EmptyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmptyResponse) Reset() {
+	*x = EmptyResponse{}
+	mi := &file_rails_rails_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmptyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmptyResponse) ProtoMessage() {}
+
+func (x *EmptyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmptyResponse.ProtoReflect.Descriptor instead.
+func (*EmptyResponse) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{2}
+}
+
+type CommonResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommonResponse) Reset() {
+	*x = CommonResponse{}
+	mi := &file_rails_rails_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommonResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommonResponse) ProtoMessage() {}
+
+func (x *CommonResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommonResponse.ProtoReflect.Descriptor instead.
+func (*CommonResponse) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CommonResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CommonResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ValueResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Value         []byte                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValueResponse) Reset() {
+	*x = ValueResponse{}
+	mi := &file_rails_rails_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValueResponse) ProtoMessage() {}
+
+func (x *ValueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValueResponse.ProtoReflect.Descriptor instead.
+func (*ValueResponse) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ValueResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ValueResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ValueResponse) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type UpdateStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scope         string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateStatus) Reset() {
+	*x = UpdateStatus{}
+	mi := &file_rails_rails_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateStatus) ProtoMessage() {}
+
+func (x *UpdateStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateStatus.ProtoReflect.Descriptor instead.
+func (*UpdateStatus) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UpdateStatus) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *UpdateStatus) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *UpdateStatus) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type LoginRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
+	mi := &file_rails_rails_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginRequest) ProtoMessage() {}
+
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *LoginRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RegisterCandidateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterCandidateRequest) Reset() {
+	*x = RegisterCandidateRequest{}
+	mi := &file_rails_rails_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterCandidateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterCandidateRequest) ProtoMessage() {}
+
+func (x *RegisterCandidateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterCandidateRequest.ProtoReflect.Descriptor instead.
+func (*RegisterCandidateRequest) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *RegisterCandidateRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *RegisterCandidateRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type ConfirmRegistryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmRegistryRequest) Reset() {
+	*x = ConfirmRegistryRequest{}
+	mi := &file_rails_rails_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmRegistryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmRegistryRequest) ProtoMessage() {}
+
+func (x *ConfirmRegistryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmRegistryRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmRegistryRequest) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ConfirmRegistryRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type ResetPasswordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetPasswordRequest) Reset() {
+	*x = ResetPasswordRequest{}
+	mi := &file_rails_rails_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetPasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetPasswordRequest) ProtoMessage() {}
+
+func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
+func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ResetPasswordRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type AddNewCluster struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddNewCluster) Reset() {
+	*x = AddNewCluster{}
+	mi := &file_rails_rails_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddNewCluster) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddNewCluster) ProtoMessage() {}
+
+func (x *AddNewCluster) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddNewCluster.ProtoReflect.Descriptor instead.
+func (*AddNewCluster) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *AddNewCluster) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AddNewCluster) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RemoveCluster struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveCluster) Reset() {
+	*x = RemoveCluster{}
+	mi := &file_rails_rails_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveCluster) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveCluster) ProtoMessage() {}
+
+func (x *RemoveCluster) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveCluster.ProtoReflect.Descriptor instead.
+func (*RemoveCluster) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RemoveCluster) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type AddNewNode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cluster       string                 `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
+	Host          string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	Port          int32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddNewNode) Reset() {
+	*x = AddNewNode{}
+	mi := &file_rails_rails_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddNewNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddNewNode) ProtoMessage() {}
+
+func (x *AddNewNode) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddNewNode.ProtoReflect.Descriptor instead.
+func (*AddNewNode) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *AddNewNode) GetCluster() string {
+	if x != nil {
+		return x.Cluster
+	}
+	return ""
+}
+
+func (x *AddNewNode) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *AddNewNode) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+type RemoveNode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cluster       string                 `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
+	Host          string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	Port          int32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveNode) Reset() {
+	*x = RemoveNode{}
+	mi := &file_rails_rails_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveNode) ProtoMessage() {}
+
+func (x *RemoveNode) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveNode.ProtoReflect.Descriptor instead.
+func (*RemoveNode) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *RemoveNode) GetCluster() string {
+	if x != nil {
+		return x.Cluster
+	}
+	return ""
+}
+
+func (x *RemoveNode) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *RemoveNode) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+type ExcludeNode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cluster       string                 `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
+	Host          string                 `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	Port          int32                  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExcludeNode) Reset() {
+	*x = ExcludeNode{}
+	mi := &file_rails_rails_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExcludeNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExcludeNode) ProtoMessage() {}
+
+func (x *ExcludeNode) ProtoReflect() protoreflect.Message {
+	mi := &file_rails_rails_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExcludeNode.ProtoReflect.Descriptor instead.
+func (*ExcludeNode) Descriptor() ([]byte, []int) {
+	return file_rails_rails_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ExcludeNode) GetCluster() string {
+	if x != nil {
+		return x.Cluster
+	}
+	return ""
+}
+
+func (x *ExcludeNode) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *ExcludeNode) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
 var File_rails_rails_proto protoreflect.FileDescriptor
 
 var file_rails_rails_proto_rawDesc = string([]byte{
 	0x0a, 0x11, 0x72, 0x61, 0x69, 0x6c, 0x73, 0x2f, 0x72, 0x61, 0x69, 0x6c, 0x73, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x42, 0x3a, 0x42, 0x0a, 0x52, 0x61, 0x69, 0x6c, 0x73, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x50, 0x01, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x73, 0x6e, 0x6f, 0x77, 0x6d, 0x65, 0x72, 0x61, 0x6b, 0x2f, 0x6b, 0x65, 0x79, 0x63, 0x6c, 0x2f,
-	0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x2f, 0x67, 0x65, 0x6e, 0x2f, 0x72, 0x61, 0x69, 0x6c, 0x73, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x74, 0x6f, 0x22, 0xf6, 0x06, 0x0a, 0x07, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12,
+	0x34, 0x0a, 0x0d, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x00, 0x52, 0x0c, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x34, 0x0a, 0x0d, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x5f,
+	0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x48, 0x00, 0x52, 0x0c, 0x75,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x34, 0x0a, 0x0d, 0x6c,
+	0x6f, 0x67, 0x69, 0x6e, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x48, 0x00, 0x52, 0x0c, 0x6c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x59, 0x0a, 0x1a, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x63, 0x61,
+	0x6e, 0x64, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
+	0x43, 0x61, 0x6e, 0x64, 0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x48, 0x00, 0x52, 0x18, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x61, 0x6e, 0x64,
+	0x69, 0x64, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x53, 0x0a, 0x18,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x5f, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79,
+	0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17,
+	0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x00, 0x52, 0x16, 0x63, 0x6f, 0x6e, 0x66, 0x69,
+	0x72, 0x6d, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x4d, 0x0a, 0x16, 0x72, 0x65, 0x73, 0x65, 0x74, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x15, 0x2e, 0x52, 0x65, 0x73, 0x65, 0x74, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72,
+	0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x48, 0x00, 0x52, 0x14, 0x72, 0x65, 0x73, 0x65,
+	0x74, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x38, 0x0a, 0x0f, 0x61, 0x64, 0x64, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x63, 0x6c, 0x75, 0x73,
+	0x74, 0x65, 0x72, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x41, 0x64, 0x64, 0x4e,
+	0x65, 0x77, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x48, 0x00, 0x52, 0x0d, 0x61, 0x64, 0x64,
+	0x4e, 0x65, 0x77, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x37, 0x0a, 0x0e, 0x72, 0x65,
+	0x6d, 0x6f, 0x76, 0x65, 0x5f, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x18, 0x08, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x43, 0x6c, 0x75, 0x73, 0x74,
+	0x65, 0x72, 0x48, 0x00, 0x52, 0x0d, 0x72, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x43, 0x6c, 0x75, 0x73,
+	0x74, 0x65, 0x72, 0x12, 0x2f, 0x0a, 0x0c, 0x61, 0x64, 0x64, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x6e,
+	0x6f, 0x64, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x41, 0x64, 0x64, 0x4e,
+	0x65, 0x77, 0x4e, 0x6f, 0x64, 0x65, 0x48, 0x00, 0x52, 0x0a, 0x61, 0x64, 0x64, 0x4e, 0x65, 0x77,
+	0x4e, 0x6f, 0x64, 0x65, 0x12, 0x2e, 0x0a, 0x0b, 0x72, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x5f, 0x6e,
+	0x6f, 0x64, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x52, 0x65, 0x6d, 0x6f,
+	0x76, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x48, 0x00, 0x52, 0x0a, 0x72, 0x65, 0x6d, 0x6f, 0x76, 0x65,
+	0x4e, 0x6f, 0x64, 0x65, 0x12, 0x31, 0x0a, 0x0c, 0x65, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x5f,
+	0x6e, 0x6f, 0x64, 0x65, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x45, 0x78, 0x63,
+	0x6c, 0x75, 0x64, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x48, 0x00, 0x52, 0x0b, 0x65, 0x78, 0x63, 0x6c,
+	0x75, 0x64, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x12, 0x37, 0x0a, 0x0e, 0x65, 0x6d, 0x70, 0x74, 0x79,
+	0x5f, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x18, 0x65, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x0e, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x48,
+	0x01, 0x52, 0x0d, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x3a, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x5f, 0x72, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x18, 0x66, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x43, 0x6f, 0x6d, 0x6d,
+	0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x48, 0x01, 0x52, 0x0e, 0x63, 0x6f,
+	0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x0e,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x5f, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x18, 0x67,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x48, 0x01, 0x52, 0x0d, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x09, 0x0a, 0x07, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x42, 0x0a, 0x0a, 0x08, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x0e, 0x0a, 0x0c,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x0f, 0x0a, 0x0d,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x44, 0x0a,
+	0x0e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x22, 0x59, 0x0a, 0x0d, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18,
+	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x4c,
+	0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x14,
+	0x0a, 0x05, 0x73, 0x63, 0x6f, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x73,
+	0x63, 0x6f, 0x70, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x40, 0x0a, 0x0c,
+	0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05,
+	0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61,
+	0x69, 0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x4c,
+	0x0a, 0x18, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x43, 0x61, 0x6e, 0x64, 0x69, 0x64,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d,
+	0x61, 0x69, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c,
+	0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x2e, 0x0a, 0x16,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0x2c, 0x0a, 0x14,
+	0x52, 0x65, 0x73, 0x65, 0x74, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0x3f, 0x0a, 0x0d, 0x41, 0x64,
+	0x64, 0x4e, 0x65, 0x77, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x22, 0x23, 0x0a, 0x0d, 0x52,
+	0x65, 0x6d, 0x6f, 0x76, 0x65, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x22, 0x4e, 0x0a, 0x0a, 0x41, 0x64, 0x64, 0x4e, 0x65, 0x77, 0x4e, 0x6f, 0x64, 0x65, 0x12, 0x18,
+	0x0a, 0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04,
+	0x70, 0x6f, 0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74,
+	0x22, 0x4e, 0x0a, 0x0a, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x12, 0x18,
+	0x0a, 0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04,
+	0x70, 0x6f, 0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74,
+	0x22, 0x4f, 0x0a, 0x0b, 0x45, 0x78, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x12,
+	0x18, 0x0a, 0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a,
+	0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70, 0x6f, 0x72,
+	0x74, 0x42, 0x3a, 0x42, 0x0a, 0x52, 0x61, 0x69, 0x6c, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
+	0x01, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x73, 0x6e,
+	0x6f, 0x77, 0x6d, 0x65, 0x72, 0x61, 0x6b, 0x2f, 0x6b, 0x65, 0x79, 0x63, 0x6c, 0x2f, 0x6d, 0x6f,
+	0x64, 0x65, 0x6c, 0x2f, 0x67, 0x65, 0x6e, 0x2f, 0x72, 0x61, 0x69, 0x6c, 0x73, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
-var file_rails_rails_proto_goTypes = []any{}
+var (
+	file_rails_rails_proto_rawDescOnce sync.Once
+	file_rails_rails_proto_rawDescData []byte
+)
+
+func file_rails_rails_proto_rawDescGZIP() []byte {
+	file_rails_rails_proto_rawDescOnce.Do(func() {
+		file_rails_rails_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_rails_rails_proto_rawDesc), len(file_rails_rails_proto_rawDesc)))
+	})
+	return file_rails_rails_proto_rawDescData
+}
+
+var file_rails_rails_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_rails_rails_proto_goTypes = []any{
+	(*Message)(nil),                  // 0: Message
+	(*EmptyRequest)(nil),             // 1: EmptyRequest
+	(*EmptyResponse)(nil),            // 2: EmptyResponse
+	(*CommonResponse)(nil),           // 3: CommonResponse
+	(*ValueResponse)(nil),            // 4: ValueResponse
+	(*UpdateStatus)(nil),             // 5: UpdateStatus
+	(*LoginRequest)(nil),             // 6: LoginRequest
+	(*RegisterCandidateRequest)(nil), // 7: RegisterCandidateRequest
+	(*ConfirmRegistryRequest)(nil),   // 8: ConfirmRegistryRequest
+	(*ResetPasswordRequest)(nil),     // 9: ResetPasswordRequest
+	(*AddNewCluster)(nil),            // 10: AddNewCluster
+	(*RemoveCluster)(nil),            // 11: RemoveCluster
+	(*AddNewNode)(nil),               // 12: AddNewNode
+	(*RemoveNode)(nil),               // 13: RemoveNode
+	(*ExcludeNode)(nil),              // 14: ExcludeNode
+}
 var file_rails_rails_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1,  // 0: Message.empty_request:type_name -> EmptyRequest
+	5,  // 1: Message.update_status:type_name -> UpdateStatus
+	6,  // 2: Message.login_request:type_name -> LoginRequest
+	7,  // 3: Message.register_candidate_request:type_name -> RegisterCandidateRequest
+	8,  // 4: Message.confirm_registry_request:type_name -> ConfirmRegistryRequest
+	9,  // 5: Message.reset_password_request:type_name -> ResetPasswordRequest
+	10, // 6: Message.add_new_cluster:type_name -> AddNewCluster
+	11, // 7: Message.remove_cluster:type_name -> RemoveCluster
+	12, // 8: Message.add_new_node:type_name -> AddNewNode
+	13, // 9: Message.remove_node:type_name -> RemoveNode
+	14, // 10: Message.exclude_node:type_name -> ExcludeNode
+	2,  // 11: Message.empty_response:type_name -> EmptyResponse
+	3,  // 12: Message.common_response:type_name -> CommonResponse
+	4,  // 13: Message.value_response:type_name -> ValueResponse
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_rails_rails_proto_init() }
@@ -45,18 +1198,35 @@ func file_rails_rails_proto_init() {
 	if File_rails_rails_proto != nil {
 		return
 	}
+	file_rails_rails_proto_msgTypes[0].OneofWrappers = []any{
+		(*Message_EmptyRequest)(nil),
+		(*Message_UpdateStatus)(nil),
+		(*Message_LoginRequest)(nil),
+		(*Message_RegisterCandidateRequest)(nil),
+		(*Message_ConfirmRegistryRequest)(nil),
+		(*Message_ResetPasswordRequest)(nil),
+		(*Message_AddNewCluster)(nil),
+		(*Message_RemoveCluster)(nil),
+		(*Message_AddNewNode)(nil),
+		(*Message_RemoveNode)(nil),
+		(*Message_ExcludeNode)(nil),
+		(*Message_EmptyResponse)(nil),
+		(*Message_CommonResponse)(nil),
+		(*Message_ValueResponse)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_rails_rails_proto_rawDesc), len(file_rails_rails_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_rails_rails_proto_goTypes,
 		DependencyIndexes: file_rails_rails_proto_depIdxs,
+		MessageInfos:      file_rails_rails_proto_msgTypes,
 	}.Build()
 	File_rails_rails_proto = out.File
 	file_rails_rails_proto_goTypes = nil
