@@ -1,0 +1,21 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries:
+      - "./queries/queries.sql"
+    schema:
+      - "./queries/schema.sql"
+    gen:
+      go:
+        package: "queries"
+        sql_package: "pgx/v5"
+        out: "queries"
+        overrides:
+          - "db_type": "geometry"
+            "go_type":
+              "import": "github.com/twpayne/go-geom"
+              "package": "geom"
+              "type": "T"
+plugins: []
+rules: []
+options: {}
