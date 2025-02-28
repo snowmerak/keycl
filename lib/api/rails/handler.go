@@ -20,6 +20,8 @@ type Handler struct {
 
 	callbacks     []func(ctx context.Context, request proto.Message, send func(proto.Message)) error
 	callbacksLock sync.RWMutex
+
+	globalWorkLock sync.Mutex
 }
 
 func NewHandler() (*Handler, error) {
