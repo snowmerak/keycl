@@ -31,6 +31,12 @@ INSERT INTO clusters (name, description, password) VALUES ($1, $2, $3) RETURNING
 -- name: GetCluster :one
 SELECT * FROM clusters WHERE name = $1;
 
+-- name: GetClusters :many
+SELECT * FROM clusters ORDER BY name ASC LIMIT $1;
+
+-- name: GetClustersByCursor :many
+SELECT * FROM clusters WHERE name > $1 ORDER BY name ASC LIMIT $2;
+
 -- name: UpdateCluster :one
 UPDATE clusters SET name = $1, password = $2, updated_at = now() WHERE name = $3 RETURNING *;
 
@@ -45,6 +51,12 @@ INSERT INTO nodes (cluster_id, node_id, host, port) VALUES ((SELECT id FROM clus
 
 -- name: GetNode :one
 SELECT * FROM nodes WHERE node_id = $1;
+
+-- name: GetNodes :many
+SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2;
+
+-- name: GetNodesByCursor :many
+SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id > $2 ORDER BY node_id ASC LIMIT $3;
 
 -- name: UpdateNode :one
 UPDATE nodes SET host = $1, port = $2, updated_at = now() WHERE node_id = $3 RETURNING *;

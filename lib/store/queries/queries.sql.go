@@ -230,6 +230,73 @@ func (q *Queries) GetClusterNodes(ctx context.Context, name string) ([]Node, err
 	return items, nil
 }
 
+const getClusters = `-- name: GetClusters :many
+SELECT id, name, description, password, created_at, updated_at FROM clusters ORDER BY name ASC LIMIT $1
+`
+
+func (q *Queries) GetClusters(ctx context.Context, limit int32) ([]Cluster, error) {
+	rows, err := q.db.Query(ctx, getClusters, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Cluster
+	for rows.Next() {
+		var i Cluster
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Password,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getClustersByCursor = `-- name: GetClustersByCursor :many
+SELECT id, name, description, password, created_at, updated_at FROM clusters WHERE name > $1 ORDER BY name ASC LIMIT $2
+`
+
+type GetClustersByCursorParams struct {
+	Name  string
+	Limit int32
+}
+
+func (q *Queries) GetClustersByCursor(ctx context.Context, arg GetClustersByCursorParams) ([]Cluster, error) {
+	rows, err := q.db.Query(ctx, getClustersByCursor, arg.Name, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Cluster
+	for rows.Next() {
+		var i Cluster
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Password,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNode = `-- name: GetNode :one
 SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE node_id = $1
 `
@@ -247,6 +314,81 @@ func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getNodes = `-- name: GetNodes :many
+SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2
+`
+
+type GetNodesParams struct {
+	Name  string
+	Limit int32
+}
+
+func (q *Queries) GetNodes(ctx context.Context, arg GetNodesParams) ([]Node, error) {
+	rows, err := q.db.Query(ctx, getNodes, arg.Name, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Node
+	for rows.Next() {
+		var i Node
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClusterID,
+			&i.NodeID,
+			&i.Host,
+			&i.Port,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNodesByCursor = `-- name: GetNodesByCursor :many
+SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id > $2 ORDER BY node_id ASC LIMIT $3
+`
+
+type GetNodesByCursorParams struct {
+	Name   string
+	NodeID string
+	Limit  int32
+}
+
+func (q *Queries) GetNodesByCursor(ctx context.Context, arg GetNodesByCursorParams) ([]Node, error) {
+	rows, err := q.db.Query(ctx, getNodesByCursor, arg.Name, arg.NodeID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Node
+	for rows.Next() {
+		var i Node
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClusterID,
+			&i.NodeID,
+			&i.Host,
+			&i.Port,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSession = `-- name: GetSession :one

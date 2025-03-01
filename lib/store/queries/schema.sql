@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS clusters
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS clusters_name_index ON clusters (name);
+
 CREATE TABLE IF NOT EXISTS nodes
 (
     id SERIAL PRIMARY KEY,
@@ -47,3 +49,5 @@ CREATE TABLE IF NOT EXISTS nodes
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS nodes_cluster_id_index ON nodes (cluster_id);
