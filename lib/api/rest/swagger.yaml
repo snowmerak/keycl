@@ -1,0 +1,892 @@
+openapi: 3.0.0
+info:
+  title: KeyCL API
+  description: KeyCL API 명세서입니다.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080 # 서버 URL (실제 서버 주소로 변경 필요)
+tags:
+  - name: Authentication
+    description: 사용자 인증 관련 API
+  - name: User
+    description: 사용자 관리 API
+  - name: Cluster
+    description: 클러스터 관리 API
+  - name: Node
+    description: 노드 관리 API
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 사용자 이메일
+        password:
+          type: string
+          description: 사용자 비밀번호
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 로그인 성공 여부
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 사용자 이메일
+        password:
+          type: string
+          description: 사용자 비밀번호
+      required:
+        - email
+        - password
+    CreateClusterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 클러스터 이름
+        description:
+          type: string
+          description: 클러스터 설명
+        password:
+          type: string
+          description: 클러스터 비밀번호 (현재 사용 안함)
+      required:
+        - name
+    GetClusterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+      required:
+        - name
+    GetClusterResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 클러스터 이름
+        description:
+          type: string
+          nullable: true
+          description: 클러스터 설명
+        created_at:
+          type: string
+          format: date-time
+          description: 생성일시
+        updated_at:
+          type: string
+          format: date-time
+          description: 수정일시
+    GetClustersRequest:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: 페이지당 클러스터 수
+        cursor:
+          type: string
+          description: 페이지 커서 (이름 기반)
+    GetClustersResponse:
+      type: object
+      properties:
+        clusters:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetClusterResponse'
+    UpdateClusterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+        description:
+          type: string
+          nullable: true
+          description: 클러스터 설명 (선택적)
+        password:
+          type: string
+          nullable: true
+          description: 클러스터 비밀번호 (선택적, 현재 사용 안함)
+    DeleteClusterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+      required:
+        - name
+    CreateNodeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 노드 이름
+        cluster_name:
+          type: string
+          description: 클러스터 이름
+        node_id:
+          type: string
+          description: 노드 ID
+        host:
+          type: string
+          description: 노드 호스트 주소
+        port:
+          type: integer
+          format: int32
+          description: 노드 포트
+      required:
+        - cluster_name
+        - node_id
+        - host
+        - port
+    GetNodeRequest:
+      type: object
+      properties:
+        cluster_name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+        node_id:
+          type: string
+          description: 노드 ID (쿼리 파라미터, host/port 대신 사용 가능)
+        host:
+          type: string
+          description: 노드 호스트 주소 (쿼리 파라미터, node_id 대신 사용 가능)
+        port:
+          type: integer
+          format: int32
+          description: 노드 포트 (쿼리 파라미터, host 와 함께 사용)
+      required:
+        - cluster_name
+    GetNodeResponse:
+      type: object
+      properties:
+        cluster_name:
+          type: string
+          description: 클러스터 이름
+        node_id:
+          type: string
+          description: 노드 ID
+        host:
+          type: string
+          description: 노드 호스트 주소
+        port:
+          type: integer
+          format: int32
+          description: 노드 포트
+        created_at:
+          type: string
+          format: date-time
+          description: 생성일시
+        updated_at:
+          type: string
+          format: date-time
+          description: 수정일시
+    GetNodesRequest:
+      type: object
+      properties:
+        cluster_name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+        count:
+          type: integer
+          format: int32
+          description: 페이지당 노드 수
+        cursor:
+          type: string
+          description: 페이지 커서 (node_id 기반)
+      required:
+        - cluster_name
+    GetNodesResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetNodeResponse'
+    DeleteNodeRequest:
+      type: object
+      properties:
+        cluster_name:
+          type: string
+          description: 클러스터 이름 (쿼리 파라미터)
+        node_id:
+          type: string
+          description: 노드 ID (쿼리 파라미터)
+      required:
+        - cluster_name
+        - node_id
+    ErrorResponse: # 공통 에러 응답 스키마 (필요에 따라 상세하게 정의 가능)
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+  securitySchemes:
+    cookieAuth:      # 쿠키 기반 인증 방식 정의
+      type: apiKey
+      in: cookie
+      name: k-token  # 쿠키 이름
+paths:
+  /api/session:
+    post:
+      tags:
+        - Authentication
+      summary: 로그인 및 세션 생성
+      description: 사용자 이메일과 비밀번호를 사용하여 로그인하고, 세션 쿠키를 발급합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        201:
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        400:
+          description: 잘못된 요청 (이메일 또는 비밀번호 오류)
+          content:
+            text/plain: # 또는 application/json 에러 응답 정의 가능
+              schema:
+                type: string
+        401:
+          description: 권한 없음 (삭제된 사용자)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러 (토큰 생성 실패 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+    delete:
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 로그아웃 및 세션 만료
+      description: 현재 세션을 만료시키고, 쿠키를 삭제합니다.
+      responses:
+        200:
+          description: 로그아웃 성공
+  /api/user:
+    post:
+      tags:
+        - User
+      summary: 사용자 생성 (회원가입)
+      description: 새로운 사용자를 생성합니다. 관리자 권한이 필요하지 않습니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        201:
+          description: 사용자 생성 성공
+        400:
+          description: 잘못된 요청 (이메일 형식 오류, 비밀번호 조건 불충족, 이메일 중복 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러 (DB 오류 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+    delete:
+      tags:
+        - User
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 사용자 삭제 (탈퇴)
+      description: 특정 이메일 주소를 가진 사용자를 삭제합니다. 관리자 권한이 필요합니다.
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          required: true
+          description: 삭제할 사용자 이메일
+      responses:
+        200:
+          description: 사용자 삭제 성공
+        400:
+          description: 잘못된 요청 (이메일 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없거나 유효하지 않음, 관리자 권한 부족, 삭제 대상과 요청자 불일치)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    get: # /api/user?email=email
+      tags:
+        - User
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 사용자 계정 활성화
+      description: 특정 이메일 주소를 가진 사용자 계정을 활성화합니다. 관리자 권한이 필요합니다.
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          required: true
+          description: 활성화할 사용자 이메일
+      responses:
+        200:
+          description: 사용자 계정 활성화 성공
+        400:
+          description: 잘못된 요청 (이메일 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없거나 유효하지 않음, 관리자 권한 부족)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 사용자 Not Found (존재하지 않거나 삭제된 사용자)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/user/promotion:
+    patch: # /api/user/promotion?email=email
+      tags:
+        - User
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 사용자 관리자 권한 승격
+      description: 특정 이메일 주소를 가진 사용자를 관리자 권한으로 승격시킵니다. 관리자 권한이 필요합니다.
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          required: true
+          description: 관리자 권한을 승격할 사용자 이메일
+      responses:
+        200:
+          description: 사용자 관리자 권한 승격 성공
+        400:
+          description: 잘못된 요청 (이메일 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없거나 유효하지 않음, 관리자 권한 부족)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 사용자 Not Found (존재하지 않거나 삭제된 사용자)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/user/demotion:
+    patch: # /api/user/demotion?email=email
+      tags:
+        - User
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 사용자 관리자 권한 강등
+      description: 특정 이메일 주소를 가진 사용자를 일반 사용자 권한으로 강등시킵니다. 관리자 권한이 필요합니다.
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          required: true
+          description: 관리자 권한을 강등할 사용자 이메일
+      responses:
+        200:
+          description: 사용자 관리자 권한 강등 성공
+        400:
+          description: 잘못된 요청 (이메일 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없거나 유효하지 않음, 관리자 권한 부족)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 사용자 Not Found (존재하지 않거나 삭제된 사용자)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/cluster:
+    post:
+      tags:
+        - Cluster
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 클러스터 생성
+      description: 새로운 클러스터를 생성합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClusterRequest'
+      responses:
+        201:
+          description: 클러스터 생성 성공
+        400:
+          description: 잘못된 요청 (클러스터 이름 중복 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    get:
+      tags:
+        - Cluster
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 클러스터 정보 조회 (단일)
+      description: 특정 이름의 클러스터 정보를 조회합니다.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름
+      responses:
+        200:
+          description: 클러스터 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterResponse'
+        400:
+          description: 잘못된 요청 (클러스터 이름 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    put:
+      tags:
+        - Cluster
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 클러스터 정보 수정
+      description: 특정 이름의 클러스터 정보를 수정합니다.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름 (수정할 클러스터)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClusterRequest'
+      responses:
+        200:
+          description: 클러스터 정보 수정 성공
+        400:
+          description: 잘못된 요청 (클러스터 이름 누락, 유효하지 않은 데이터)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    delete:
+      tags:
+        - Cluster
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 클러스터 삭제
+      description: 특정 이름의 클러스터를 삭제합니다.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름 (삭제할 클러스터)
+      responses:
+        200:
+          description: 클러스터 삭제 성공
+        400:
+          description: 잘못된 요청 (클러스터 이름 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/clusters:
+    get:
+      tags:
+        - Cluster
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 클러스터 목록 조회 (페이징)
+      description: 클러스터 목록을 페이징하여 조회합니다.
+      parameters:
+        - in: query
+          name: count
+          schema:
+            type: integer
+            format: int32
+          description: 페이지당 클러스터 수 (기본값 10)
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          description: 페이지 커서 (이름 기반, 첫 페이지는 생략 가능)
+      responses:
+        200:
+          description: 클러스터 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClustersResponse'
+        400:
+          description: 잘못된 요청 (count 값 오류 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/node:
+    post:
+      tags:
+        - Node
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 노드 생성
+      description: 새로운 노드를 생성합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNodeRequest'
+      responses:
+        201:
+          description: 노드 생성 성공
+        400:
+          description: 잘못된 요청 (잘못된 입력 값, 클러스터 이름 오류)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        409:
+          description: 노드 Conflict (Host+Port 또는 Node ID 중복)
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    get:
+      tags:
+        - Node
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 노드 정보 조회 (단일)
+      description: 특정 노드 ID 또는 Host+Port 기반으로 노드 정보를 조회합니다.
+      parameters:
+        - in: query
+          name: cluster_name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름
+        - in: query
+          name: node_id
+          schema:
+            type: string
+          description: 노드 ID (host, port 대신 사용 가능)
+        - in: query
+          name: host
+          schema:
+            type: string
+          description: 노드 호스트 (node_id 대신 사용, port 와 함께 사용)
+        - in: query
+          name: port
+          schema:
+            type: integer
+            format: int32
+          description: 노드 포트 (host 와 함께 사용)
+      responses:
+        200:
+          description: 노드 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNodeResponse'
+        400:
+          description: 잘못된 요청 (cluster_name 누락, 파라미터 조합 오류)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 노드 또는 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+    delete:
+      tags:
+        - Node
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 노드 삭제
+      description: 특정 노드 ID를 사용하여 노드를 삭제합니다.
+      parameters:
+        - in: query
+          name: cluster_name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름
+        - in: query
+          name: node_id
+          schema:
+            type: string
+          required: true
+          description: 노드 ID (삭제할 노드)
+      responses:
+        200:
+          description: 노드 삭제 성공
+        400:
+          description: 잘못된 요청 (cluster_name 또는 node_id 누락)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 노드 또는 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/nodes:
+    get:
+      tags:
+        - Node
+      security:
+        - cookieAuth: [] # 쿠키 인증 필요
+      summary: 노드 목록 조회 (페이징)
+      description: 특정 클러스터에 속한 노드 목록을 페이징하여 조회합니다.
+      parameters:
+        - in: query
+          name: cluster_name
+          schema:
+            type: string
+          required: true
+          description: 클러스터 이름
+        - in: query
+          name: count
+          schema:
+            type: integer
+            format: int32
+          description: 페이지당 노드 수 (기본값 10)
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          description: 페이지 커서 (node_id 기반, 첫 페이지는 생략 가능)
+      responses:
+        200:
+          description: 노드 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNodesResponse'
+        400:
+          description: 잘못된 요청 (cluster_name 누락, count 값 오류 등)
+          content:
+            text/plain:
+              schema:
+                type: string
+        401:
+          description: 인증 실패 (쿠키 없음 또는 유효하지 않음)
+          content:
+            text/plain:
+              schema:
+                type: string
+        404:
+          description: 클러스터 Not Found
+          content:
+            text/plain:
+              schema:
+                type: string
+        500:
+          description: 서버 내부 에러
+          content:
+            text/plain:
+              schema:
+                type: string
