@@ -32,9 +32,20 @@ type Password struct {
 	Hash string
 }
 
+type Session struct {
+	ID        int32
+	UserID    int32
+	Token     string
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+	Expired   bool
+	ExpiresAt pgtype.Timestamp
+}
+
 type User struct {
 	ID        int32
 	Email     string
+	Deleted   bool
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }

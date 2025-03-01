@@ -80,8 +80,33 @@ func (q *Queries) CreatePassword(ctx context.Context, arg CreatePasswordParams) 
 	return i, err
 }
 
+const createSession = `-- name: CreateSession :one
+INSERT INTO sessions (user_id, token, expires_at) VALUES ((SELECT id FROM users WHERE email = $1), $2, $3) RETURNING id, user_id, token, created_at, updated_at, expired, expires_at
+`
+
+type CreateSessionParams struct {
+	Email     string
+	Token     string
+	ExpiresAt pgtype.Timestamp
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
+	row := q.db.QueryRow(ctx, createSession, arg.Email, arg.Token, arg.ExpiresAt)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Expired,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email) VALUES ($1) RETURNING id, email, created_at, updated_at
+INSERT INTO users (email) VALUES ($1) RETURNING id, email, deleted, created_at, updated_at
 `
 
 func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
@@ -90,8 +115,64 @@ func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteCluster = `-- name: DeleteCluster :one
+DELETE FROM clusters WHERE name = $1 RETURNING id, name, password, created_at, updated_at
+`
+
+func (q *Queries) DeleteCluster(ctx context.Context, name string) (Cluster, error) {
+	row := q.db.QueryRow(ctx, deleteCluster, name)
+	var i Cluster
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Password,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteNode = `-- name: DeleteNode :one
+DELETE FROM nodes WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, created_at, updated_at
+`
+
+func (q *Queries) DeleteNode(ctx context.Context, nodeID string) (Node, error) {
+	row := q.db.QueryRow(ctx, deleteNode, nodeID)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.NodeID,
+		&i.Host,
+		&i.Port,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const expireSession = `-- name: ExpireSession :one
+UPDATE sessions SET expires_at = now(), expired = true WHERE token = $1 RETURNING id, user_id, token, created_at, updated_at, expired, expires_at
+`
+
+func (q *Queries) ExpireSession(ctx context.Context, token string) (Session, error) {
+	row := q.db.QueryRow(ctx, expireSession, token)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Expired,
+		&i.ExpiresAt,
 	)
 	return i, err
 }
@@ -164,8 +245,27 @@ func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
 	return i, err
 }
 
+const getSession = `-- name: GetSession :one
+SELECT id, user_id, token, created_at, updated_at, expired, expires_at FROM sessions WHERE token = $1
+`
+
+func (q *Queries) GetSession(ctx context.Context, token string) (Session, error) {
+	row := q.db.QueryRow(ctx, getSession, token)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Expired,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, email, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, deleted, created_at, updated_at FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
@@ -174,6 +274,7 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -181,12 +282,13 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 }
 
 const getUserPassword = `-- name: GetUserPassword :one
-SELECT users.id, email, created_at, updated_at, passwords.id, salt, hash FROM users JOIN passwords ON users.id = passwords.id WHERE email = $1
+SELECT users.id, email, deleted, created_at, updated_at, passwords.id, salt, hash FROM users JOIN passwords ON users.id = passwords.id WHERE email = $1
 `
 
 type GetUserPasswordRow struct {
 	ID        int32
 	Email     string
+	Deleted   bool
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 	ID_2      int32
@@ -200,6 +302,7 @@ func (q *Queries) GetUserPassword(ctx context.Context, email string) (GetUserPas
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ID_2,
@@ -253,6 +356,30 @@ func (q *Queries) UpdateNode(ctx context.Context, arg UpdateNodeParams) (Node, e
 		&i.Port,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateSession = `-- name: UpdateSession :one
+UPDATE sessions SET expires_at = $1 WHERE token = $2 RETURNING id, user_id, token, created_at, updated_at, expired, expires_at
+`
+
+type UpdateSessionParams struct {
+	ExpiresAt pgtype.Timestamp
+	Token     string
+}
+
+func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error) {
+	row := q.db.QueryRow(ctx, updateSession, arg.ExpiresAt, arg.Token)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Expired,
+		&i.ExpiresAt,
 	)
 	return i, err
 }
