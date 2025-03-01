@@ -459,17 +459,23 @@ func (q *Queries) GetUserPassword(ctx context.Context, email string) (GetUserPas
 }
 
 const updateCluster = `-- name: UpdateCluster :one
-UPDATE clusters SET name = $1, password = $2, updated_at = now() WHERE name = $3 RETURNING id, name, description, password, created_at, updated_at
+UPDATE clusters SET name = $1, password = $2, description = $3, updated_at = now() WHERE name = $4 RETURNING id, name, description, password, created_at, updated_at
 `
 
 type UpdateClusterParams struct {
-	Name     string
-	Password string
-	Name_2   string
+	Name        string
+	Password    string
+	Description pgtype.Text
+	Name_2      string
 }
 
 func (q *Queries) UpdateCluster(ctx context.Context, arg UpdateClusterParams) (Cluster, error) {
-	row := q.db.QueryRow(ctx, updateCluster, arg.Name, arg.Password, arg.Name_2)
+	row := q.db.QueryRow(ctx, updateCluster,
+		arg.Name,
+		arg.Password,
+		arg.Description,
+		arg.Name_2,
+	)
 	var i Cluster
 	err := row.Scan(
 		&i.ID,

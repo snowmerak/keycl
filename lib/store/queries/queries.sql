@@ -38,7 +38,7 @@ SELECT * FROM clusters ORDER BY name ASC LIMIT $1;
 SELECT * FROM clusters WHERE name > $1 ORDER BY name ASC LIMIT $2;
 
 -- name: UpdateCluster :one
-UPDATE clusters SET name = $1, password = $2, updated_at = now() WHERE name = $3 RETURNING *;
+UPDATE clusters SET name = $1, password = $2, description = $3, updated_at = now() WHERE name = $4 RETURNING *;
 
 -- name: GetClusterNodes :many
 SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1);
