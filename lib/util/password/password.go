@@ -1,9 +1,16 @@
 package password
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"hash"
 )
+
+func GenerateSalt() string {
+	buf := make([]byte, 16)
+	rand.Read(buf)
+	return base64.URLEncoding.EncodeToString(buf)
+}
 
 func HashPassword(step1, step2 hash.Hash, salt string, password string) string {
 	saltBytes := []byte(salt)
