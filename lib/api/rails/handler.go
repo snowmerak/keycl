@@ -14,11 +14,19 @@ import (
 	"github.com/snowmerak/keycl/model/gen/rails"
 )
 
+type SessionState struct {
+	RemoteAddr string
+	Validated  bool
+	Email      string
+}
+
+type Callback func(ctx context.Context, state *SessionState, request proto.Message, send func(proto.Message)) error
+
 type Handler struct {
 	sessions     map[string]net.Conn
 	sessionsLock sync.RWMutex
 
-	callbacks     []func(ctx context.Context, request proto.Message, send func(proto.Message)) error
+	callbacks     []Callback
 	callbacksLock sync.RWMutex
 
 	globalWorkLock sync.Mutex
@@ -51,6 +59,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.sessionsLock.Unlock()
 	})
 
+	ss := &SessionState{
+		RemoteAddr: remoteAddr,
+	}
+
 	for {
 		data, err := wsutil.ReadClientBinary(conn)
 		if err != nil {
@@ -66,7 +78,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		h.callbacksLock.RLock()
 		for _, callback := range h.callbacks {
-			go callback(ctx, message, func(response proto.Message) {
+			go callback(ctx, ss, message, func(response proto.Message) {
 				defer func() {
 					if err := recover(); err != nil {
 						log.Error().Interface("err", err).Msg("Failed to send response")
@@ -107,7 +119,7 @@ func (h *Handler) Broadcast(message *rails.Message) {
 	}
 }
 
-func (h *Handler) RegisterCallback(callback func(ctx context.Context, request proto.Message, send func(proto.Message)) error) {
+func (h *Handler) RegisterCallback(callback Callback) {
 	h.callbacksLock.Lock()
 	h.callbacks = append(h.callbacks, callback)
 	h.callbacksLock.Unlock()
