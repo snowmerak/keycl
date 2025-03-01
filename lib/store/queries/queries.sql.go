@@ -145,11 +145,16 @@ func (q *Queries) DeleteCluster(ctx context.Context, name string) (Cluster, erro
 }
 
 const deleteNode = `-- name: DeleteNode :one
-DELETE FROM nodes WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, created_at, updated_at
+DELETE FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id = $2 RETURNING id, cluster_id, node_id, host, port, created_at, updated_at
 `
 
-func (q *Queries) DeleteNode(ctx context.Context, nodeID string) (Node, error) {
-	row := q.db.QueryRow(ctx, deleteNode, nodeID)
+type DeleteNodeParams struct {
+	Name   string
+	NodeID string
+}
+
+func (q *Queries) DeleteNode(ctx context.Context, arg DeleteNodeParams) (Node, error) {
+	row := q.db.QueryRow(ctx, deleteNode, arg.Name, arg.NodeID)
 	var i Node
 	err := row.Scan(
 		&i.ID,
