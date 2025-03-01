@@ -337,6 +337,55 @@ func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
 	return i, err
 }
 
+const getNodeByHostPort = `-- name: GetNodeByHostPort :one
+SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $3) AND host = $1 AND port = $2
+`
+
+type GetNodeByHostPortParams struct {
+	Host string
+	Port int32
+	Name string
+}
+
+func (q *Queries) GetNodeByHostPort(ctx context.Context, arg GetNodeByHostPortParams) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByHostPort, arg.Host, arg.Port, arg.Name)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.NodeID,
+		&i.Host,
+		&i.Port,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getNodeByNodeID = `-- name: GetNodeByNodeID :one
+SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $2) AND node_id = $1
+`
+
+type GetNodeByNodeIDParams struct {
+	NodeID string
+	Name   string
+}
+
+func (q *Queries) GetNodeByNodeID(ctx context.Context, arg GetNodeByNodeIDParams) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByNodeID, arg.NodeID, arg.Name)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.NodeID,
+		&i.Host,
+		&i.Port,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getNodes = `-- name: GetNodes :many
 SELECT id, cluster_id, node_id, host, port, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2
 `
