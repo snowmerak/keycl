@@ -24,6 +24,7 @@ services:
       - "17004:17004"
       - "17005:17005"
       - "17006:17006"
+      - "5432:5432"
 
   valkey-2:
     container_name: valkey-2
@@ -96,5 +97,3 @@ services:
     network_mode: "service:valkey-1"
     expose:
       - 5432
-    ports:
-      - "5432:5432"
