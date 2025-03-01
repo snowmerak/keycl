@@ -15,12 +15,50 @@ import (
 )
 
 type SessionState struct {
-	RemoteAddr string
-	Validated  bool
-	Email      string
+	remoteAddr string
+	validated  bool
+	email      string
+
+	lock *sync.RWMutex
 }
 
-type Callback func(ctx context.Context, state *SessionState, request proto.Message, send func(proto.Message)) error
+func (s *SessionState) SetRemoteAddr(remoteAddr string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.remoteAddr = remoteAddr
+}
+
+func (s *SessionState) RemoteAddr() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.remoteAddr
+}
+
+func (s *SessionState) SetValidated(validated bool) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.validated = validated
+}
+
+func (s *SessionState) Validated() bool {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.validated
+}
+
+func (s *SessionState) SetEmail(email string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.email = email
+}
+
+func (s *SessionState) Email() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.email
+}
+
+type Callback func(ctx context.Context, state *SessionState, request *rails.Message, send func(message *rails.Message)) error
 
 type Handler struct {
 	sessions     map[string]net.Conn
@@ -28,8 +66,6 @@ type Handler struct {
 
 	callbacks     []Callback
 	callbacksLock sync.RWMutex
-
-	globalWorkLock sync.Mutex
 }
 
 func NewHandler() (*Handler, error) {
@@ -60,7 +96,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ss := &SessionState{
-		RemoteAddr: remoteAddr,
+		remoteAddr: remoteAddr,
 	}
 
 	for {
@@ -78,7 +114,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		h.callbacksLock.RLock()
 		for _, callback := range h.callbacks {
-			go callback(ctx, ss, message, func(response proto.Message) {
+			go callback(ctx, ss, message, func(response *rails.Message) {
 				defer func() {
 					if err := recover(); err != nil {
 						log.Error().Interface("err", err).Msg("Failed to send response")
