@@ -53,3 +53,5 @@ CREATE TABLE IF NOT EXISTS nodes
 );
 
 CREATE INDEX IF NOT EXISTS nodes_cluster_id_index ON nodes (cluster_id);
+CREATE INDEX IF NOT EXISTS nodes_host_port_index ON nodes (host, port);
+CREATE INDEX IF NOT EXISTS nodes_node_id_index ON nodes (node_id);
