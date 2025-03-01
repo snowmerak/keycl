@@ -46,6 +46,8 @@ type Session struct {
 type User struct {
 	ID        int32
 	Email     string
+	IsAdmin   bool
+	Validated bool
 	Deleted   bool
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp

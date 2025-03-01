@@ -108,7 +108,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email) VALUES ($1) RETURNING id, email, deleted, created_at, updated_at
+INSERT INTO users (email) VALUES ($1) RETURNING id, email, is_admin, validated, deleted, created_at, updated_at
 `
 
 func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
@@ -117,6 +117,8 @@ func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
 		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -155,6 +157,25 @@ func (q *Queries) DeleteNode(ctx context.Context, nodeID string) (Node, error) {
 		&i.NodeID,
 		&i.Host,
 		&i.Port,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+DELETE FROM users WHERE email = $1 RETURNING id, email, is_admin, validated, deleted, created_at, updated_at
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, deleteUser, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
+		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -411,7 +432,7 @@ func (q *Queries) GetSession(ctx context.Context, token string) (Session, error)
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, deleted, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, is_admin, validated, deleted, created_at, updated_at FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
@@ -420,6 +441,27 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
+		&i.Deleted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserBySession = `-- name: GetUserBySession :one
+SELECT id, email, is_admin, validated, deleted, created_at, updated_at FROM users WHERE id = (SELECT user_id FROM sessions WHERE token = $1)
+`
+
+func (q *Queries) GetUserBySession(ctx context.Context, token string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserBySession, token)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
 		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -428,12 +470,14 @@ func (q *Queries) GetUser(ctx context.Context, email string) (User, error) {
 }
 
 const getUserPassword = `-- name: GetUserPassword :one
-SELECT users.id, email, deleted, created_at, updated_at, passwords.id, salt, hash FROM users JOIN passwords ON users.id = passwords.id WHERE email = $1
+SELECT users.id, email, is_admin, validated, deleted, created_at, updated_at, passwords.id, salt, hash FROM users JOIN passwords ON users.id = passwords.id WHERE email = $1
 `
 
 type GetUserPasswordRow struct {
 	ID        int32
 	Email     string
+	IsAdmin   bool
+	Validated bool
 	Deleted   bool
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
@@ -448,6 +492,8 @@ func (q *Queries) GetUserPassword(ctx context.Context, email string) (GetUserPas
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
 		&i.Deleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -533,6 +579,37 @@ func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) (S
 		&i.UpdatedAt,
 		&i.Expired,
 		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users SET is_admin = $1, validated = $2, deleted = $3, updated_at = now() WHERE email = $4 RETURNING id, email, is_admin, validated, deleted, created_at, updated_at
+`
+
+type UpdateUserParams struct {
+	IsAdmin   bool
+	Validated bool
+	Deleted   bool
+	Email     string
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.IsAdmin,
+		arg.Validated,
+		arg.Deleted,
+		arg.Email,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.IsAdmin,
+		&i.Validated,
+		&i.Deleted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

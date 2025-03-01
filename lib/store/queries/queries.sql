@@ -4,6 +4,12 @@ SELECT * FROM users WHERE email = $1;
 -- name: CreateUser :one
 INSERT INTO users (email) VALUES ($1) RETURNING *;
 
+-- name: UpdateUser :one
+UPDATE users SET is_admin = $1, validated = $2, deleted = $3, updated_at = now() WHERE email = $4 RETURNING *;
+
+-- name: DeleteUser :one
+DELETE FROM users WHERE email = $1 RETURNING *;
+
 -- name: CreatePassword :one
 INSERT INTO passwords (salt, hash) VALUES ($1, $2) RETURNING *;
 
@@ -18,6 +24,9 @@ INSERT INTO sessions (user_id, token, expires_at) VALUES ((SELECT id FROM users 
 
 -- name: GetSession :one
 SELECT * FROM sessions WHERE token = $1;
+
+-- name: GetUserBySession :one
+SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE token = $1);
 
 -- name: UpdateSession :one
 UPDATE sessions SET expires_at = $1 WHERE token = $2 RETURNING *;
