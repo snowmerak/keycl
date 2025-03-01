@@ -32,3 +32,24 @@ func (s *Store) Visit(ctx context.Context, visitor func(ctx context.Context, q *
 	q := queries.New(s.conn)
 	return visitor(ctx, q)
 }
+
+func (s *Store) VisitTx(ctx context.Context, visitor func(ctx context.Context, q *queries.Queries) error) error {
+	tx, err := s.conn.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("conn.Begin: %w", err)
+	}
+
+	q := queries.New(tx)
+	if err := visitor(ctx, q); err != nil {
+		if err := tx.Rollback(ctx); err != nil {
+			return fmt.Errorf("tx.Rollback: %w", err)
+		}
+		return fmt.Errorf("visitor: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("tx.Commit: %w", err)
+	}
+
+	return visitor(ctx, q)
+}
