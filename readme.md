@@ -7,15 +7,17 @@ KeyCL is a simple valkey/redis cli executaor for golang.
 - Go 1.24 or later
 - redis-cli or valkey-cli
 
-## Installation
+## As Library
+
+### Installation
 
 ```bash
 go get github.com/snowmerak/keycl
 ```
 
-## Usage
+### Usage
 
-### init
+#### init
 
 ```go
 package main
@@ -35,7 +37,7 @@ func main() {
 }
 ```
 
-### create cluster
+#### create cluster
 
 ```go
 if err := c.CreateCluster(ctx, 0, "127.0.0.1:7001", "127.0.0.1:7002", "127.0.0.1:7003"); err != nil {
@@ -43,7 +45,7 @@ if err := c.CreateCluster(ctx, 0, "127.0.0.1:7001", "127.0.0.1:7002", "127.0.0.1
 }
 ```
 
-### add node
+#### add node
 
 ```go
 if err := c.AddNode(ctx, "127.0.0.1", 7005, "127.0.0.1", 7002); err != nil {
@@ -51,9 +53,9 @@ if err := c.AddNode(ctx, "127.0.0.1", 7005, "127.0.0.1", 7002); err != nil {
 }
 ```
 
-### remove node
+#### remove node
 
-#### forget node
+##### forget node
 
 ```go
 if err := c.ForgetNode(ctx, "127.0.0.1", 7005, "2b6a441e4cd32fe88ddb460338a76479e4875a6b"); err != nil {
@@ -61,7 +63,7 @@ if err := c.ForgetNode(ctx, "127.0.0.1", 7005, "2b6a441e4cd32fe88ddb460338a76479
 }
 ```
 
-#### delete node
+##### delete node
 
 ```go
 if err := c.DeleteNode(ctx, "127.0.0.1", 7005, "2b6a441e4cd32fe88ddb460338a76479e4875a6b"); err != nil {
@@ -69,9 +71,9 @@ if err := c.DeleteNode(ctx, "127.0.0.1", 7005, "2b6a441e4cd32fe88ddb460338a76479
 }
 ```
 
-### reshard
+#### reshard
 
-#### reshard all empty node
+##### reshard all empty node
 
 ```go
 if err := c.ReshardAll(ctx, "127.0.0.1", 7001); err != nil {
@@ -79,7 +81,7 @@ if err := c.ReshardAll(ctx, "127.0.0.1", 7001); err != nil {
 }
 ```
 
-#### move slot to neighbor node
+##### move slot to neighbor node
 
 ```go
 if err := c.ExceptNode(ctx, "127.0.0.1", 7001, "2b6a441e4cd32fe88ddb460338a76479e4875a6b"); err != nil {
@@ -87,7 +89,7 @@ if err := c.ExceptNode(ctx, "127.0.0.1", 7001, "2b6a441e4cd32fe88ddb460338a76479
 }
 ```
 
-#### merge slot to other node
+##### merge slot to other node
 
 ```go
 if err := c.MergeNode(ctx, "127.0.0.1", 7001, "2b6a441e4cd32fe88ddb460338a76479e4875a6b", "4b6a441e4cd32fe88ddb460338a76479e4875a6b"); err != nil {
@@ -95,7 +97,7 @@ if err := c.MergeNode(ctx, "127.0.0.1", 7001, "2b6a441e4cd32fe88ddb460338a76479e
 }
 ```
 
-#### rebalance slot
+##### rebalance slot
 
 ```go
 if err := c.Rebalance(ctx, "127.0.0.1", 7001); err != nil {
@@ -103,7 +105,7 @@ if err := c.Rebalance(ctx, "127.0.0.1", 7001); err != nil {
 }
 ```
 
-### replicate node
+#### replicate node
 
 ```go
 if err := c.ReplicateNode(ctx, "127.0.0.1", 7003, "2b6a441e4cd32fe88ddb460338a76479e4875a6b"); err != nil {
