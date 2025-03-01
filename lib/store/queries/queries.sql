@@ -26,7 +26,7 @@ UPDATE sessions SET expires_at = $1 WHERE token = $2 RETURNING *;
 UPDATE sessions SET expires_at = now(), expired = true WHERE token = $1 RETURNING *;
 
 -- name: CreateCluster :one
-INSERT INTO clusters (name, password) VALUES ($1, $2) RETURNING *;
+INSERT INTO clusters (name, description, password) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: GetCluster :one
 SELECT * FROM clusters WHERE name = $1;

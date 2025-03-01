@@ -9,11 +9,12 @@ import (
 )
 
 type Cluster struct {
-	ID        int32
-	Name      string
-	Password  string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	ID          int32
+	Name        string
+	Description pgtype.Text
+	Password    string
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
 }
 
 type Node struct {

@@ -12,20 +12,22 @@ import (
 )
 
 const createCluster = `-- name: CreateCluster :one
-INSERT INTO clusters (name, password) VALUES ($1, $2) RETURNING id, name, password, created_at, updated_at
+INSERT INTO clusters (name, description, password) VALUES ($1, $2, $3) RETURNING id, name, description, password, created_at, updated_at
 `
 
 type CreateClusterParams struct {
-	Name     string
-	Password string
+	Name        string
+	Description pgtype.Text
+	Password    string
 }
 
 func (q *Queries) CreateCluster(ctx context.Context, arg CreateClusterParams) (Cluster, error) {
-	row := q.db.QueryRow(ctx, createCluster, arg.Name, arg.Password)
+	row := q.db.QueryRow(ctx, createCluster, arg.Name, arg.Description, arg.Password)
 	var i Cluster
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -123,7 +125,7 @@ func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
 }
 
 const deleteCluster = `-- name: DeleteCluster :one
-DELETE FROM clusters WHERE name = $1 RETURNING id, name, password, created_at, updated_at
+DELETE FROM clusters WHERE name = $1 RETURNING id, name, description, password, created_at, updated_at
 `
 
 func (q *Queries) DeleteCluster(ctx context.Context, name string) (Cluster, error) {
@@ -132,6 +134,7 @@ func (q *Queries) DeleteCluster(ctx context.Context, name string) (Cluster, erro
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -178,7 +181,7 @@ func (q *Queries) ExpireSession(ctx context.Context, token string) (Session, err
 }
 
 const getCluster = `-- name: GetCluster :one
-SELECT id, name, password, created_at, updated_at FROM clusters WHERE name = $1
+SELECT id, name, description, password, created_at, updated_at FROM clusters WHERE name = $1
 `
 
 func (q *Queries) GetCluster(ctx context.Context, name string) (Cluster, error) {
@@ -187,6 +190,7 @@ func (q *Queries) GetCluster(ctx context.Context, name string) (Cluster, error) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -313,7 +317,7 @@ func (q *Queries) GetUserPassword(ctx context.Context, email string) (GetUserPas
 }
 
 const updateCluster = `-- name: UpdateCluster :one
-UPDATE clusters SET name = $1, password = $2, updated_at = now() WHERE name = $3 RETURNING id, name, password, created_at, updated_at
+UPDATE clusters SET name = $1, password = $2, updated_at = now() WHERE name = $3 RETURNING id, name, description, password, created_at, updated_at
 `
 
 type UpdateClusterParams struct {
@@ -328,6 +332,7 @@ func (q *Queries) UpdateCluster(ctx context.Context, arg UpdateClusterParams) (C
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
