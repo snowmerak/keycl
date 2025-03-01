@@ -11,7 +11,7 @@ UPDATE users SET is_admin = $1, validated = $2, deleted = $3, updated_at = now()
 DELETE FROM users WHERE email = $1 RETURNING *;
 
 -- name: CreatePassword :one
-INSERT INTO passwords (salt, hash) VALUES ($1, $2) RETURNING *;
+INSERT INTO passwords (id, salt, hash) VALUES ($1, $2, $3) RETURNING *;
 
 -- name: GetUserPassword :one
 SELECT * FROM users JOIN passwords ON users.id = passwords.id WHERE email = $1;

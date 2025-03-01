@@ -67,16 +67,17 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, e
 }
 
 const createPassword = `-- name: CreatePassword :one
-INSERT INTO passwords (salt, hash) VALUES ($1, $2) RETURNING id, salt, hash
+INSERT INTO passwords (id, salt, hash) VALUES ($1, $2, $3) RETURNING id, salt, hash
 `
 
 type CreatePasswordParams struct {
+	ID   int32
 	Salt string
 	Hash string
 }
 
 func (q *Queries) CreatePassword(ctx context.Context, arg CreatePasswordParams) (Password, error) {
-	row := q.db.QueryRow(ctx, createPassword, arg.Salt, arg.Hash)
+	row := q.db.QueryRow(ctx, createPassword, arg.ID, arg.Salt, arg.Hash)
 	var i Password
 	err := row.Scan(&i.ID, &i.Salt, &i.Hash)
 	return i, err
