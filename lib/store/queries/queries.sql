@@ -61,6 +61,12 @@ INSERT INTO nodes (cluster_id, node_id, host, port) VALUES ((SELECT id FROM clus
 -- name: GetNode :one
 SELECT * FROM nodes WHERE node_id = $1;
 
+-- name: GetNodeByHostPort :one
+SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $3) AND host = $1 AND port = $2;
+
+-- name: GetNodeByNodeID :one
+SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $2) AND node_id = $1;
+
 -- name: GetNodes :many
 SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2;
 
