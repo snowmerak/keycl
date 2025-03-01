@@ -23,6 +23,7 @@ type Node struct {
 	NodeID    string
 	Host      string
 	Port      int32
+	Connected bool
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }

@@ -76,5 +76,11 @@ SELECT * FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1)
 -- name: UpdateNode :one
 UPDATE nodes SET host = $1, port = $2, updated_at = now() WHERE node_id = $3 RETURNING *;
 
+-- name: ConnectNode :one
+UPDATE nodes SET connected = true, updated_at = now() WHERE node_id = $1 RETURNING *;
+
+-- name: DisconnectNode :one
+UPDATE nodes SET connected = false, updated_at = now() WHERE node_id = $1 RETURNING *;
+
 -- name: DeleteNode :one
 DELETE FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id = $2 RETURNING *;
