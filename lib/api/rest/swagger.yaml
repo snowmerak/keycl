@@ -183,6 +183,9 @@ components:
           type: integer
           format: int32
           description: 노드 포트
+        connected:
+          type: boolean
+          description: 노드 연결 상태
         created_at:
           type: string
           format: date-time
