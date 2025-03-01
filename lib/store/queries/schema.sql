@@ -17,12 +17,14 @@ CREATE TABLE IF NOT EXISTS sessions
 (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    token VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired BOOLEAN NOT NULL DEFAULT FALSE,
     expires_at TIMESTAMP NOT NULL
-)
+);
+
+CREATE INDEX IF NOT EXISTS sessions_user_id_index ON sessions (user_id);
 
 CREATE TABLE IF NOT EXISTS clusters
 (
