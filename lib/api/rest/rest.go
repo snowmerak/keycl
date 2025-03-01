@@ -836,6 +836,7 @@ type GetNodeResponse struct {
 	NodeID      string    `json:"node_id"`
 	Host        string    `json:"host"`
 	Port        int32     `json:"port"`
+	Connected   bool      `json:"connected"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -900,6 +901,7 @@ func (a *API) GetNode(w http.ResponseWriter, r *http.Request) {
 		response.NodeID = resp.NodeID
 		response.Host = resp.Host
 		response.Port = resp.Port
+		response.Connected = resp.Connected
 		response.CreatedAt = resp.CreatedAt.Time
 		response.UpdatedAt = resp.UpdatedAt.Time
 
@@ -989,6 +991,7 @@ func (a *API) GetNodes(w http.ResponseWriter, r *http.Request) {
 				NodeID:      r.NodeID,
 				Host:        r.Host,
 				Port:        r.Port,
+				Connected:   r.Connected,
 				CreatedAt:   r.CreatedAt.Time,
 				UpdatedAt:   r.UpdatedAt.Time,
 			})
