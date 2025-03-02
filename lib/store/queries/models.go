@@ -18,14 +18,15 @@ type Cluster struct {
 }
 
 type Node struct {
-	ID        int32
-	ClusterID int32
-	NodeID    string
-	Host      string
-	Port      int32
-	Connected bool
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+	ID          int32
+	ClusterID   int32
+	NodeID      string
+	Host        string
+	Port        int32
+	Connected   bool
+	IsCandidate bool
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
 }
 
 type Password struct {

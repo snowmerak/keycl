@@ -82,5 +82,8 @@ UPDATE nodes SET connected = true, updated_at = now() WHERE node_id = $1 RETURNI
 -- name: DisconnectNode :one
 UPDATE nodes SET connected = false, updated_at = now() WHERE node_id = $1 RETURNING *;
 
+-- name: SetNodeCandidate :one
+UPDATE nodes SET is_candidate = $1, updated_at = now() WHERE node_id = $2 RETURNING *;
+
 -- name: DeleteNode :one
 DELETE FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id = $2 RETURNING *;

@@ -12,7 +12,7 @@ import (
 )
 
 const connectNode = `-- name: ConnectNode :one
-UPDATE nodes SET connected = true, updated_at = now() WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, connected, created_at, updated_at
+UPDATE nodes SET connected = true, updated_at = now() WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
 `
 
 func (q *Queries) ConnectNode(ctx context.Context, nodeID string) (Node, error) {
@@ -25,6 +25,7 @@ func (q *Queries) ConnectNode(ctx context.Context, nodeID string) (Node, error) 
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -56,7 +57,7 @@ func (q *Queries) CreateCluster(ctx context.Context, arg CreateClusterParams) (C
 }
 
 const createNode = `-- name: CreateNode :one
-INSERT INTO nodes (cluster_id, node_id, host, port) VALUES ((SELECT id FROM clusters WHERE name = $1), $2, $3, $4) RETURNING id, cluster_id, node_id, host, port, connected, created_at, updated_at
+INSERT INTO nodes (cluster_id, node_id, host, port) VALUES ((SELECT id FROM clusters WHERE name = $1), $2, $3, $4) RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
 `
 
 type CreateNodeParams struct {
@@ -81,6 +82,7 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, e
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -167,7 +169,7 @@ func (q *Queries) DeleteCluster(ctx context.Context, name string) (Cluster, erro
 }
 
 const deleteNode = `-- name: DeleteNode :one
-DELETE FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id = $2 RETURNING id, cluster_id, node_id, host, port, connected, created_at, updated_at
+DELETE FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id = $2 RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
 `
 
 type DeleteNodeParams struct {
@@ -185,6 +187,7 @@ func (q *Queries) DeleteNode(ctx context.Context, arg DeleteNodeParams) (Node, e
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -211,7 +214,7 @@ func (q *Queries) DeleteUser(ctx context.Context, email string) (User, error) {
 }
 
 const disconnectNode = `-- name: DisconnectNode :one
-UPDATE nodes SET connected = false, updated_at = now() WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, connected, created_at, updated_at
+UPDATE nodes SET connected = false, updated_at = now() WHERE node_id = $1 RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
 `
 
 func (q *Queries) DisconnectNode(ctx context.Context, nodeID string) (Node, error) {
@@ -224,6 +227,7 @@ func (q *Queries) DisconnectNode(ctx context.Context, nodeID string) (Node, erro
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -268,7 +272,7 @@ func (q *Queries) GetCluster(ctx context.Context, name string) (Cluster, error) 
 }
 
 const getClusterNodes = `-- name: GetClusterNodes :many
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1)
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1)
 `
 
 func (q *Queries) GetClusterNodes(ctx context.Context, name string) ([]Node, error) {
@@ -287,6 +291,7 @@ func (q *Queries) GetClusterNodes(ctx context.Context, name string) ([]Node, err
 			&i.Host,
 			&i.Port,
 			&i.Connected,
+			&i.IsCandidate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -368,7 +373,7 @@ func (q *Queries) GetClustersByCursor(ctx context.Context, arg GetClustersByCurs
 }
 
 const getNode = `-- name: GetNode :one
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE node_id = $1
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE node_id = $1
 `
 
 func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
@@ -381,6 +386,7 @@ func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -388,7 +394,7 @@ func (q *Queries) GetNode(ctx context.Context, nodeID string) (Node, error) {
 }
 
 const getNodeByHostPort = `-- name: GetNodeByHostPort :one
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $3) AND host = $1 AND port = $2
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $3) AND host = $1 AND port = $2
 `
 
 type GetNodeByHostPortParams struct {
@@ -407,6 +413,7 @@ func (q *Queries) GetNodeByHostPort(ctx context.Context, arg GetNodeByHostPortPa
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -414,7 +421,7 @@ func (q *Queries) GetNodeByHostPort(ctx context.Context, arg GetNodeByHostPortPa
 }
 
 const getNodeByNodeID = `-- name: GetNodeByNodeID :one
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $2) AND node_id = $1
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $2) AND node_id = $1
 `
 
 type GetNodeByNodeIDParams struct {
@@ -432,6 +439,7 @@ func (q *Queries) GetNodeByNodeID(ctx context.Context, arg GetNodeByNodeIDParams
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -439,7 +447,7 @@ func (q *Queries) GetNodeByNodeID(ctx context.Context, arg GetNodeByNodeIDParams
 }
 
 const getNodes = `-- name: GetNodes :many
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) ORDER BY node_id ASC LIMIT $2
 `
 
 type GetNodesParams struct {
@@ -463,6 +471,7 @@ func (q *Queries) GetNodes(ctx context.Context, arg GetNodesParams) ([]Node, err
 			&i.Host,
 			&i.Port,
 			&i.Connected,
+			&i.IsCandidate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -477,7 +486,7 @@ func (q *Queries) GetNodes(ctx context.Context, arg GetNodesParams) ([]Node, err
 }
 
 const getNodesByCursor = `-- name: GetNodesByCursor :many
-SELECT id, cluster_id, node_id, host, port, connected, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id > $2 ORDER BY node_id ASC LIMIT $3
+SELECT id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at FROM nodes WHERE cluster_id = (SELECT id FROM clusters WHERE name = $1) AND node_id > $2 ORDER BY node_id ASC LIMIT $3
 `
 
 type GetNodesByCursorParams struct {
@@ -502,6 +511,7 @@ func (q *Queries) GetNodesByCursor(ctx context.Context, arg GetNodesByCursorPara
 			&i.Host,
 			&i.Port,
 			&i.Connected,
+			&i.IsCandidate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -607,6 +617,32 @@ func (q *Queries) GetUserPassword(ctx context.Context, email string) (GetUserPas
 	return i, err
 }
 
+const setNodeCandidate = `-- name: SetNodeCandidate :one
+UPDATE nodes SET is_candidate = $1, updated_at = now() WHERE node_id = $2 RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
+`
+
+type SetNodeCandidateParams struct {
+	IsCandidate bool
+	NodeID      string
+}
+
+func (q *Queries) SetNodeCandidate(ctx context.Context, arg SetNodeCandidateParams) (Node, error) {
+	row := q.db.QueryRow(ctx, setNodeCandidate, arg.IsCandidate, arg.NodeID)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.NodeID,
+		&i.Host,
+		&i.Port,
+		&i.Connected,
+		&i.IsCandidate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateCluster = `-- name: UpdateCluster :one
 UPDATE clusters SET name = $1, password = $2, description = $3, updated_at = now() WHERE name = $4 RETURNING id, name, description, password, created_at, updated_at
 `
@@ -638,7 +674,7 @@ func (q *Queries) UpdateCluster(ctx context.Context, arg UpdateClusterParams) (C
 }
 
 const updateNode = `-- name: UpdateNode :one
-UPDATE nodes SET host = $1, port = $2, updated_at = now() WHERE node_id = $3 RETURNING id, cluster_id, node_id, host, port, connected, created_at, updated_at
+UPDATE nodes SET host = $1, port = $2, updated_at = now() WHERE node_id = $3 RETURNING id, cluster_id, node_id, host, port, connected, is_candidate, created_at, updated_at
 `
 
 type UpdateNodeParams struct {
@@ -657,6 +693,7 @@ func (q *Queries) UpdateNode(ctx context.Context, arg UpdateNodeParams) (Node, e
 		&i.Host,
 		&i.Port,
 		&i.Connected,
+		&i.IsCandidate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
